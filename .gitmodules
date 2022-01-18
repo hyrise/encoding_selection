@@ -1,0 +1,6 @@
+[submodule "hyrise"]
+	path = hyrise
+	url = https://github.com/Bouncner/hyrise_workload_analysis_plugin.git
+[submodule "encoding_plugin"]
+	path = encoding_plugin
+	url = https://github.com/Bouncner/hyrise_workload_analysis_plugin.git
