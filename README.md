@@ -9,6 +9,7 @@ In case you have any questions, please contact [Martin Boissier](https://hpi.de/
 
 This is a preliminary BibTeX entry. The paper has been accepted but it might move to another issue in case the camera ready version is not accepted.
 <details><summary>BibTeX entry (click to expand)</summary>
+
 ```bibtex
 @article{DBLP:journals/pvldb/Boissier22,
   author    = {Martin Boissier},
