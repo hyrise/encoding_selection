@@ -35,7 +35,7 @@ The Python code is stored in the `python` directory.
 
 ## Setup - Execution
 
-[![Main](https://github.com/Bouncner/encoding_selection_private/actions/workflows/haupt.yml/badge.svg)](https://github.com/Bouncner/encoding_selection/actions/workflows/haupt.yml)
+[![Main](https://github.com/hyrise/encoding_selection/actions/workflows/haupt.yml/badge.svg)](https://github.com/hyrise/encoding_selection/actions/workflows/haupt.yml)
 
 The whole encoding selection pipeline runs within GitHub actions to make it as easy as possible to reproduce the results and run everything on your own machines (e.g., using [act](https://github.com/nektos/act)).
 Due to GitHub restrictions, the pipeline creates only a tiny data set (scale factor of 0.5).
