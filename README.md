@@ -61,7 +61,7 @@ flowchart LR;
     cal --> train["Training<br>Runtime and size models"];
     train --> selection["Encoding<br>Selection"];
     selection --> runhyrise["Run TPC-H<br>(ST &amp; MT)"];
-    runhyrise --> plot["Plotting<br>R"];
+    runhyrise --> plot["Plotting<br>(R)"];
     setupdb --> datamonet["Data Generation<br>MonetDB"];
     datamonet --> runmonet["Run TPC-H<br>MonetDB"];
     runmonet --> dataduckdb["Data Generation<br>DuckDB (TPC-H's dbgen)"];
