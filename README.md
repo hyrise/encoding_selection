@@ -28,7 +28,7 @@ This is a preliminary "DBLP-style" BibTeX entry. The paper has been accepted but
 
 ## Setup - Overview
 
-This project consists of three main components: (i) Hyrise, (ii) the encoding plugin for Hyrise, and (iii) Python scripts that train the models and run the actual selection process.
+This project consists of three main components: **(i)** Hyrise, **(ii)** the encoding plugin(s) for Hyrise, and **(iii)** Python scripts that train the models and run the actual selection process.
 The repository contains the `encoding_plugin` directory, which stores a (actually a set of) plugin(s). These plugins for Hyrise manage the communication with the Hyrise server. Hyrise itself is a third party module within the plugin.
 The Python code is stored in the `python` directory.
 
@@ -42,6 +42,8 @@ Due to GitHub restrictions, the pipeline creates only a tiny data set (scale fac
 
 For each run, we compare Hyrise against MonetDB and DuckDB.
 The results are plotted and stored in the artifacts of each run.
+Download `database_comparison(.zip)` of the last succesful run for a plot of the TPC-H benchmark runs.
+
 Please note that we compare against DuckDB more or less for fun.
 We are huge fans of the project, but the current benchmark script is probably an unfair comparison (multiple concurrent clients).
 We have talked to the DuckDB maintainers and decided to exclude DuckDB measurements from the paper for this reason.
