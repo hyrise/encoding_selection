@@ -1,0 +1,316 @@
+name: Main
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "* * 17 * *"
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  SKIP_HYRISE: false
+  SKIP_MONETDB: false
+  SKIP_DUCKDB: false
+  SCALE_FACTOR: 0.5
+  CMAKE_GENERATOR: Ninja
+
+jobs:
+  hyrise_full_pipeline:
+    name: Hyrise - Full calibration and evaluation pipeline
+    runs-on: ubuntu-20.04
+
+    outputs:
+      core_count: ${{ steps.core_client_counts.outputs.core_count }}
+      client_count: ${{ steps.core_client_counts.outputs.client_count }}
+      calibration_run: ${{ steps.calibration.outputs.calibration_run }}
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Install dependencies for Act setup
+      if: ${{ env.ACT }}
+      run: |
+           sudo apt-get update -y -qq
+           sudo apt-get install -y -qq git build-essential cmake python3-pip
+
+    - name: Install dependencies
+      run: |
+           sudo apt-get update -y -qq
+           # We don't use Hyrise's install_dependencies script as it includes much more than needed for this small setup here.
+           sudo apt-get install -y -qq ninja-build libboost-all-dev postgresql-server-dev-all libtbb-dev systemtap-sdt-dev lld numactl
+           pip3 install -r python/requirements.txt --quiet
+
+    - name: Determine core and client counts for database comparison
+      id: core_client_counts
+      run: |
+           core_count=`grep -Pc '^processor\t' /proc/cpuinfo`
+           client_count=$(python -c "import math; print(int(math.ceil(${core_count}*0.75)))")
+           comparison_runtime=$(python -c "print(min(1800, max(300, int(${{ env.SCALE_FACTOR }}*3500))))")
+           echo "Using ${core_count} cores and ${client_count} clients, comparison benchmarks running for ${comparison_runtime} seconds."
+
+           echo "CORE_COUNT=${core_count}" >> $GITHUB_ENV
+           echo "CLIENT_COUNT=${client_count}" >> $GITHUB_ENV
+           echo "COMPARISON_RUNTIME=${comparison_runtime}" >> $GITHUB_ENV
+
+           echo "::set-output name=core_count::${core_count}"
+           echo "::set-output name=client_count::${client_count}"
+
+    - name: Build release server and plugins
+      if: env.SKIP_HYRISE == 'false'
+      run: |
+           mkdir -p encoding_plugin/rel
+           pushd encoding_plugin/rel > /dev/null
+           # Erase all encoding types. Hurts performance but allows us to compile in release mode with GitHub runners.
+           cmake -DCMAKE_BUILD_TYPE=Release -DHAVE_POSIX_REGEX=0 -DTHREADS_PREFER_PTHREAD_FLAG=1 -DCMAKE_THREAD_LIBS_INIT="-lpthread" -DCMAKE_HAVE_THREADS_LIBRARY=1 -DCMAKE_USE_PTHREADS_INIT=1 -DERASE_SEGMENT_TYPES=Dictionary,LZ4,RunLength,FSST,FrameOfReference,Unencoded,FixedStringDictionary ..
+           cmake --build . --target hyriseServer WorkloadStatisticsPlugin WorkloadHandlerPlugin CommandExecutorPlugin DataCharacteristicsPlugin
+           popd > /dev/null
+
+    - name: Run calibration - data collection phase (TPC-H only)
+      if: env.SKIP_HYRISE == 'false'
+      run: |
+           # We have a custom CMake target that might not trigger correctly. Since we don't use TPC-DS in this GitHub Action
+           # run here, creating an empty directory should be fine.
+           rm -rf encoding_plugin/rel/resources || true # mkdir -p does not work wity symlinks. Just get it done.
+           mkdir -p encoding_plugin/rel/resources/benchmark/tpcds/tpcds-result-reproduction/query_qualification
+
+           pushd python > /dev/null
+           python3 runner.py --hyrise_server_path=../encoding_plugin/rel/  --base_benchmark_runs=1 --single_benchmark=TPC-H --execute=calibration --scale_factor ${{ env.SCALE_FACTOR }} --random_encoding_configs_count=3
+           popd > /dev/null
+
+    - name: Run calibration - learn runtime and size models
+      id: calibration
+      if: env.SKIP_HYRISE == 'false'
+      run: |
+           pushd python > /dev/null
+           calibration_run=`ls -t calibration | grep -v 'results' | head -n1`
+           # Run pipeline without selection.
+           python3 encoding_selection_pipeline.py --calibration_dir=calibration/${calibration_run} --skip_phases selection
+           popd > /dev/null
+
+           echo "::set-output name=calibration_run::${calibration_run}"
+           echo "CALIBRATION_RUN=${calibration_run}" >> $GITHUB_ENV
+
+    - name: Run encoding selection
+      if: env.SKIP_HYRISE == 'false'
+      run: |
+           pushd python > /dev/null
+           # Run selection. For simplicity: use calibration workload as workload to optimize.
+           python3 encoding_selection_pipeline.py --calibration_dir=calibration/${{ env.CALIBRATION_RUN }} --use_calibration_as_workload --skip_phases load_csv prepare learn_runtime learn_size --budget_steps_stretch_factor 5.0
+           popd > /dev/null
+
+    - name: Benchmark encoding configurations
+      if: env.SKIP_HYRISE == 'false'
+      run: |
+           pushd python
+           python3 runner.py --hyrise_server_path=../encoding_plugin/rel/ --execute=evaluation --configurations_dir "evaluation/${{ env.CALIBRATION_RUN }}/configurations__default/TPCH" --results_dir "evaluation/${{ env.CALIBRATION_RUN }}/results/TPCH" --scale_factor ${{ env.SCALE_FACTOR }} --single_benchmark=TPCH --port 5551
+           popd 
+
+    - name: Benchmark non-constrained Hyrise (database comparison)
+      if: env.SKIP_HYRISE == 'false'
+      run: |
+           pushd python
+           python3 db_comparison_runner.py hyrise --hyrise_server_path=../encoding_plugin/rel/ --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --clients=${{ env.CLIENT_COUNT }} --time=${{ env.COMPARISON_RUNTIME }}
+           python3 db_comparison_runner.py hyrise --hyrise_server_path=../encoding_plugin/rel/ --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --determine_size_only
+           popd
+
+    - name: Benchmark budget-constrained Hyrise (database comparison)
+      if: env.SKIP_HYRISE == 'false'
+      run: |
+           pushd python
+           python3 runner.py --hyrise_server_path=../encoding_plugin/rel/ --execute=evaluation --configurations_dir "evaluation/${{ env.CALIBRATION_RUN }}/configurations__default/TPCH/LPCompressionSelection" --results_dir "evaluation/${{ env.CALIBRATION_RUN }}/results/TPCH/LPCompressionSelection" --scale_factor ${{ env.SCALE_FACTOR }} --single_benchmark=TPCH --port 5551 --cores=${{ env.CORE_COUNT }} --clients=${{ env.CLIENT_COUNT }}
+           popd 
+
+    - name: Upload benchmark results (default)
+      uses: actions/upload-artifact@v2
+      if: env.SKIP_HYRISE == 'false'
+      with:
+        name: comparison_results_hyrise
+        path: |
+          python/db_comparison_results/*.csv
+
+    - name: Upload benchmark results (default)
+      uses: actions/upload-artifact@v2
+      if: env.SKIP_HYRISE == 'false'
+      with:
+        name: comparison_results_hyrise
+        path: |
+          python/evaluation/${{ env.CALIBRATION_RUN }}/results/TPCH/*.csv
+          python/evaluation/${{ env.CALIBRATION_RUN }}/results/TPCH/LPCompressionSelection/*.csv
+
+
+  database_comparison:
+    name: Database Comparison
+    runs-on: ubuntu-20.04
+
+    outputs:
+      core_count: ${{ steps.core_client_counts.outputs.core_count }}
+      client_count: ${{ steps.core_client_counts.outputs.client_count }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/checkout@master
+      if: env.SKIP_MONETDB == 'false'
+      with:
+        token: ${{ secrets.PAT }}
+        repository: MonetDB/MonetDB
+        path: ./MonetDB
+
+    - uses: actions/checkout@master
+      if: env.SKIP_MONETDB == 'false'
+      with:
+        token: ${{ secrets.PAT }}
+        repository: MonetDBSolutions/tpch-scripts
+        path: ./tpch-scripts
+
+    - uses: actions/checkout@master
+      if: env.SKIP_DUCKDB == 'false'
+      with:
+        token: ${{ secrets.PAT }}
+        repository: electrum/tpch-dbgen
+        path: ./tpch-dbgen
+
+    - name: Determine client and core counts for database comparison
+      id: core_client_counts
+      run: |
+           core_count=`grep -Pc '^processor\t' /proc/cpuinfo`
+           client_count=$(python -c "import math; print(int(math.ceil(${core_count}*0.75)))")
+           comparison_runtime=$(python -c "print(min(1800, max(300, int(${{ env.SCALE_FACTOR }}*3500))))")
+           echo "Using ${core_count} cores and ${client_count} clients, comparison benchmarks running for ${comparison_runtime} seconds."
+
+           echo "CORE_COUNT=${core_count}" >> $GITHUB_ENV
+           echo "CLIENT_COUNT=${client_count}" >> $GITHUB_ENV
+           echo "COMPARISON_RUNTIME=${comparison_runtime}" >> $GITHUB_ENV
+
+           echo "::set-output name=core_count::${core_count}"
+           echo "::set-output name=client_count::${client_count}"
+
+    - name: Install dependencies for Act setup
+      if: ${{ env.ACT }}
+      run: |
+           sudo apt-get update -y -qq
+           sudo apt-get install -y -qq git build-essential cmake python3-pip
+
+    - name: Install dependencies
+      run: |
+           sudo apt-get update -y -qq
+           sudo apt-get install -y -qq ninja-build postgresql-server-dev-all numactl bison # gcc-10 g++-10 cpp-10
+           pip3 install -r python/requirements.txt --quiet
+
+    - name: Setup MonetDB
+      if: env.SKIP_MONETDB == 'false'
+      run: |
+           pushd MonetDB
+           mkdir rel
+           pushd rel
+           cmake -DCMAKE_INSTALL_PREFIX=~/monetdb_bin/ -DASSERT=OFF -DCMAKE_BUILD_TYPE=Release .. 1> /dev/null
+           cmake --build . 1> /dev/null
+           cmake --build . --target install
+           echo "${HOME}/monetdb_bin/bin" >> $GITHUB_PATH
+           popd
+           popd
+
+    - name: Generate TPC-H data set (MonetDB)
+      if: env.SKIP_MONETDB == 'false'
+      run: |
+           mkdir -p monetdb_farm
+
+           echo "pwd" $(pwd)
+           echo "PATH" $PATH
+           echo "HOME" "${HOME}"
+           ls -lisa "${HOME}/monetdb_bin/bin"
+
+           pushd tpch-scripts
+           ./tpch_build.sh -s ${{ env.SCALE_FACTOR }} -f ~/monetdb_farm
+           popd
+
+    - name: Benchmark MonetDB (database comparison)
+      if: env.SKIP_MONETDB == 'false'
+      run: |
+           pushd python
+           python3 db_comparison_runner.py monetdb --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --clients=${{ env.CLIENT_COUNT }} --time=${{ env.COMPARISON_RUNTIME }}
+           python3 db_comparison_runner.py monetdb --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --determine_size_only
+           popd
+
+    - name: Generate TPC-H data set (for DuckDB and Umbra)
+      if: env.SKIP_DUCKDB == 'false'
+      run: |
+           pushd tpch-dbgen
+           make &> /dev/null
+           ./dbgen -s ${{ env.SCALE_FACTOR }} -f
+           mkdir -p sf${{ env.SCALE_FACTOR }}
+           mv *.tbl sf${{ env.SCALE_FACTOR }}          
+           popd
+           mv tpch-dbgen ~
+
+
+    - name: Benchmark DuckDB (database comparison)
+      if: env.SKIP_DUCKDB == 'false'
+      run: |
+           pushd python
+           python3 db_comparison_runner.py duckdb --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --clients=${{ env.CLIENT_COUNT }} --time=${{ env.COMPARISON_RUNTIME }}
+           python3 db_comparison_runner.py duckdb --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --determine_size_only
+           popd
+
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v2
+      if: env.SKIP_DUCKDB == 'false' || env.SKIP_MONETDB == 'false'
+      with:
+        name: comparison_results
+        path: |
+          python/db_comparison_results/*.csv
+
+
+  plotting:
+    needs: [hyrise_full_pipeline, database_comparison]
+    name: Plotting
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: r-lib/actions/setup-r@v2
+
+    - uses: actions/download-artifact@master
+      with:
+        name: comparison_results
+        path: results_to_plot
+
+    - uses: actions/download-artifact@master
+      with:
+        name: comparison_results_hyrise
+        path: results_to_plot
+
+    - name: Set environment variables
+      run: |
+           echo "HYRISE_CORE_COUNT=${{ needs.hyrise_full_pipeline.outputs.core_count }}" >> $GITHUB_ENV
+           echo "HYRISE_CLIENT_COUNT=${{ needs.hyrise_full_pipeline.outputs.client_count }}" >> $GITHUB_ENV
+           echo "CALIBRATION_RUN=${{ needs.hyrise_full_pipeline.outputs.calibration_run }}" >> $GITHUB_ENV
+
+           echo "COMPARISON_CORE_COUNT=${{ needs.database_comparison.outputs.core_count }}" >> $GITHUB_ENV
+           echo "COMPARISON_CLIENT_COUNT=${{ needs.database_comparison.outputs.client_count }}" >> $GITHUB_ENV
+
+   # Install R packages (install action did not work with act)
+    - name: Install dependencies
+      run: |
+           install.packages(c(
+            "dplyr",
+            "ggplot2",
+            "ggrepel"
+           ))
+      shell: Rscript {0}
+
+    - name: Plot
+      run: |
+           source("R/plot.R")
+      shell: Rscript {0} 
+
+    - name: Upload database comparison plot
+      uses: actions/upload-artifact@v2
+      with:
+        name: database_comparison
+        path: |
+          db_comparison.pdf

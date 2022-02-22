@@ -1,0 +1,12 @@
+duckdb <= 0.3.2
+joblib == 1.1.0
+matplotlib == 3.5.1
+multiprocess == 0.70.12.2
+numpy == 1.22.2
+pandas == 1.4.0
+pymonetdb == 1.5.0
+psycopg2 == 2.9.3
+PuLP == 2.6.0
+scikit-learn == 1.0.2
+#scikit-learn-intelex == 2021.5.3  # Used for fast regressions; might cause issues on the GitHub runners.
+xgboost == 1.5.2
