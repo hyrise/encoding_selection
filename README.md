@@ -37,7 +37,8 @@ The Python code is stored in the `python` directory.
 
 [![Main](https://github.com/hyrise/encoding_selection/actions/workflows/haupt.yml/badge.svg)](https://github.com/hyrise/encoding_selection/actions/workflows/haupt.yml)
 
-The whole encoding selection pipeline runs within GitHub actions to make it as easy as possible to reproduce the results and run everything on your own machines (e.g., using [act](https://github.com/nektos/act)).
+The whole encoding selection pipeline runs within GitHub actions to ease reproducing the paper's results or run everything on your own machines (e.g., using [act](https://github.com/nektos/act)).
+The `hyrise_full_pipeline` job in the main workflow file [haupt.yml](https://github.com/hyrise/encoding_selection/blob/main/.github/workflows/haupt.yml#L20) lists all steps required from gathering calibration data, learning models, selecting configurations, to evaluating them.
 Due to GitHub restrictions, the pipeline creates only a tiny data set (scale factor of 0.5).
 
 For each run, we compare Hyrise against MonetDB and DuckDB.
