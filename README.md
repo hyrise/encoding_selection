@@ -8,7 +8,7 @@ In case you have any questions, please contact [Martin Boissier](https://hpi.de/
 
 ### Citation
 
-This is a preliminary "DBLP-style" BibTeX entry. The paper has been accepted but it might move to another issue in case the camera ready version is not accepted.
+This is a preliminary "DBLP-style" BibTeX entry.
 <details><summary>BibTeX entry (click to expand)</summary>
 
 ```bibtex
@@ -41,14 +41,10 @@ The whole encoding selection pipeline runs within GitHub actions to ease reprodu
 The `hyrise_full_pipeline` job in the main workflow file [haupt.yml](https://github.com/hyrise/encoding_selection/blob/main/.github/workflows/haupt.yml#L20) lists all steps required from gathering calibration data, learning models, selecting configurations, to evaluating them.
 Due to GitHub restrictions, the pipeline creates only a tiny data set (scale factor of 0.5).
 
-For each run, we compare Hyrise against MonetDB and DuckDB.
-The results are plotted and stored in the artifacts of each run.
+For each run, we compare Hyrise against MonetDB and DuckDB[^1].
+The results are plotted and stored in the artifacts of each run[^2].
 Download `database_comparison(.zip)` of the last succesful run for a plot of the TPC-H benchmark runs.
 
-Please note that we compare against DuckDB more or less for fun.
-We are huge fans of the project, but the current benchmark script is probably an unfair comparison (multiple concurrent clients).
-We have talked to the DuckDB maintainers and decided to exclude DuckDB measurements from the paper for this reason.
-In case you can help us to make a fair comparison, feel free to post a pull request.
 
 The code (both the plugins as well as the Python scripts) are extracted from a larger project.
 Please excuse the often convoluted and bloated code.
@@ -70,3 +66,15 @@ flowchart LR;
     runduckdb --> plot;
 ```
 
+[^1]: Please view the results with a huge grain of salt, especially the DuckDB results.
+We are founding members of the DuckDB fan club Potsdam and thus wanted to include it.
+But the current benchmark script is probably an unfair comparison, as DuckDB's aim is more on single-user performance (i.e., data scientists/smartists).
+Hyrise's focus on concurrent OLTP/OLAP users.
+In a single-user-multiple-cores scenario, DuckDB performs significantly better.
+Further, we cannot rule out that Python's GIL causes unexpected performance degradations.
+We have talked to the DuckDB maintainers and decided to exclude DuckDB measurements from the paper for this reason.
+In case you can help us to make a fair comparison, feel free to post a pull request.
+
+[^2]: The plots are meant to show the reproducibility of the results, not to establish a fair comparison.
+To conduct a "fairer" comparison (cf. footnote on DuckDB), the pipeline needs to be run on a dedicated machine.
+We have seen workflow runtimes on GitHub varying from 3h to over 6h (which is than canceled by GitHub) for the same setup.
