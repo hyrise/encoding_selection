@@ -1,7 +1,7 @@
 # Automated Encoding Selection
 ### Reproducibility Repository
 
-This repository contains source code and artifacts for the paper **Robust and Budget-Constrained Encoding Configurations for In-Memory Database Systems** (VLDB 2022).
+This repository contains source code and artifacts for the paper [**Robust and Budget-Constrained Encoding Configurations for In-Memory Database Systems**](https://www.vldb.org/pvldb/vol15/p780-boissier.pdf) (VLDB 2022).
 
 In case you have any questions, please contact [Martin Boissier](https://hpi.de/plattner/people/phd-students/martin-boissier.html).
 
@@ -20,7 +20,7 @@ This is a preliminary "DBLP-style" BibTeX entry.
   number    = {4},
   pages     = {780--793},
   year      = {2022},
-  url       = {http://www.vldb.org/pvldb/vol15/p499-boissier.pdf}
+  url       = {https://www.vldb.org/pvldb/vol15/p780-boissier.pdf}
 }
 ```
 </details>
@@ -49,7 +49,7 @@ Download `database_comparison(.zip)` of the last succesful run for a plot of the
 The code (both the plugins as well as the Python scripts) are extracted from a larger project.
 Please excuse the often convoluted and bloated code.
 
-
+Flowchart of the GitHub runner workflow[^3]:
 ```mermaid
 flowchart LR;
     Start --> setuph["Setup Hyrise Pipeline<br>(git, apt, pip, ...)"];
@@ -67,7 +67,7 @@ flowchart LR;
 ```
 
 [^1]: Please view the results with a huge grain of salt, especially the DuckDB results.
-We are founding members of the DuckDB fan club Potsdam and thus wanted to include it.
+We are huge fans of DuckDB and thus wanted to include it.
 But the current benchmark script is probably an unfair comparison, as DuckDB's aim is more on single-user performance (i.e., data scientists/smartists).
 Hyrise's focus on concurrent OLTP/OLAP users.
 In a single-user-multiple-cores scenario, DuckDB performs significantly better.
@@ -78,3 +78,5 @@ In case you can help us to make a fair comparison, feel free to post a pull requ
 [^2]: The plots are meant to show the reproducibility of the results, not to establish a fair comparison.
 To conduct a "fairer" comparison (cf. footnote on DuckDB), the pipeline needs to be run on a dedicated machine.
 We have seen workflow runtimes on GitHub varying from 3h to over 6h (which is than canceled by GitHub) for the same setup.
+
+[^3]: Yes, I just wanted to integrate the flowchart for the sake of integrating a flowchart in Markdown. It isn't that interesting.
