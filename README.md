@@ -8,22 +8,21 @@ In case you have any questions, please contact [Martin Boissier](https://hpi.de/
 
 ### Citation
 
-This is a preliminary "DBLP-style" BibTeX entry.
-<details><summary>BibTeX entry (click to expand)</summary>
-
+Shortened DBLP BibTeX entry:
 ```bibtex
-@article{DBLPlike:journals/pvldb/Boissier22,
+@article{DBLP:journals/pvldb/Boissier21,
   author    = {Martin Boissier},
-  title     = {Robust and Budget-Constrained Encoding Configurations for In-Memory Database Systems},
+  title     = {Robust and Budget-Constrained Encoding Configurations for In-Memory
+               Database Systems},
   journal   = {Proc. {VLDB} Endow.},
   volume    = {15},
   number    = {4},
   pages     = {780--793},
-  year      = {2022},
-  url       = {https://www.vldb.org/pvldb/vol15/p780-boissier.pdf}
+  year      = {2021},
+  url       = {https://www.vldb.org/pvldb/vol15/p780-boissier.pdf},
+  doi       = {10.14778/3503585.3503588}
 }
 ```
-</details>
 
 
 ## Setup - Overview
