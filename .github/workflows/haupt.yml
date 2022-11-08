@@ -151,23 +151,23 @@ jobs:
       client_count: ${{ steps.core_client_counts.outputs.client_count }}
 
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v3
 
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v3
       if: env.SKIP_MONETDB == 'false'
       with:
         token: ${{ secrets.PAT }}
         repository: MonetDB/MonetDB
         path: ./MonetDB
 
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v3
       if: env.SKIP_MONETDB == 'false'
       with:
         token: ${{ secrets.PAT }}
         repository: MonetDBSolutions/tpch-scripts
         path: ./tpch-scripts
 
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v3
       if: env.SKIP_DUCKDB == 'false'
       with:
         token: ${{ secrets.PAT }}
