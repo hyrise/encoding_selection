@@ -207,10 +207,15 @@ jobs:
            pushd MonetDB
            mkdir rel
            pushd rel
-           cmake -DCMAKE_INSTALL_PREFIX=~/monetdb_bin/ -DASSERT=OFF -DCMAKE_BUILD_TYPE=Release .. 1> /dev/null
-           cmake --build . 1> /dev/null
+           echo "cmake"
+           cmake -DCMAKE_INSTALL_PREFIX=~/monetdb_bin/ -DASSERT=OFF -DCMAKE_BUILD_TYPE=Release ..
+           echo $?
+           echo "build"
            cmake --build . --target install
+           echo $?
+           echo "env"
            echo "${HOME}/monetdb_bin/bin" >> $GITHUB_PATH
+           echo $?
            popd
            popd
 
