@@ -158,7 +158,7 @@ jobs:
       with:
         token: ${{ secrets.PAT }}
         repository: MonetDB/MonetDB
-        ref: '43e6b6cc949060345b79821feaf598fa521db31a'
+        ref: 'Sep2022_7'
         path: ./MonetDB
 
     - uses: actions/checkout@master
