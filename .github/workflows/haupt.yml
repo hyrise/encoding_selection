@@ -27,7 +27,7 @@ jobs:
       calibration_run: ${{ steps.calibration.outputs.calibration_run }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@master
       with:
         submodules: recursive
 
@@ -56,8 +56,8 @@ jobs:
            echo "CLIENT_COUNT=${client_count}" >> $GITHUB_ENV
            echo "COMPARISON_RUNTIME=${comparison_runtime}" >> $GITHUB_ENV
 
-           echo "::set-output name=core_count::${core_count}"
-           echo "::set-output name=client_count::${client_count}"
+           echo "core_count=${core_count}" >> $GITHUB_OUTPUT
+           echo "client_count=${client_count}" >> $GITHUB_OUTPUT
 
     - name: Build release server and plugins
       if: env.SKIP_HYRISE == 'false'
@@ -91,7 +91,7 @@ jobs:
            python3 encoding_selection_pipeline.py --calibration_dir=calibration/${calibration_run} --skip_phases selection
            popd > /dev/null
 
-           echo "::set-output name=calibration_run::${calibration_run}"
+           echo "calibration_run=${calibration_run}" >> $GITHUB_OUTPUT
            echo "CALIBRATION_RUN=${calibration_run}" >> $GITHUB_ENV
 
     - name: Run encoding selection
@@ -125,7 +125,7 @@ jobs:
            popd 
 
     - name: Upload benchmark results (default)
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@master
       if: env.SKIP_HYRISE == 'false'
       with:
         name: comparison_results_hyrise
@@ -133,7 +133,7 @@ jobs:
           python/db_comparison_results/*.csv
 
     - name: Upload benchmark results (default)
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@master
       if: env.SKIP_HYRISE == 'false'
       with:
         name: comparison_results_hyrise
@@ -151,13 +151,14 @@ jobs:
       client_count: ${{ steps.core_client_counts.outputs.client_count }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@master
 
     - uses: actions/checkout@master
       if: env.SKIP_MONETDB == 'false'
       with:
         token: ${{ secrets.PAT }}
         repository: MonetDB/MonetDB
+        ref: 'Sep2022_7'  # checking out the latest tag as the current master does not compile with GCC 11 (as of 2022-11-17) 
         path: ./MonetDB
 
     - uses: actions/checkout@master
@@ -186,8 +187,8 @@ jobs:
            echo "CLIENT_COUNT=${client_count}" >> $GITHUB_ENV
            echo "COMPARISON_RUNTIME=${comparison_runtime}" >> $GITHUB_ENV
 
-           echo "::set-output name=core_count::${core_count}"
-           echo "::set-output name=client_count::${client_count}"
+           echo "core_count=${core_count}" >> $GITHUB_OUTPUT
+           echo "client_count=${client_count}" >> $GITHUB_OUTPUT
 
     - name: Install dependencies for Act setup
       if: ${{ env.ACT }}
@@ -208,7 +209,6 @@ jobs:
            mkdir rel
            pushd rel
            cmake -DCMAKE_INSTALL_PREFIX=~/monetdb_bin/ -DASSERT=OFF -DCMAKE_BUILD_TYPE=Release .. 1> /dev/null
-           cmake --build . 1> /dev/null
            cmake --build . --target install
            echo "${HOME}/monetdb_bin/bin" >> $GITHUB_PATH
            popd
@@ -218,12 +218,6 @@ jobs:
       if: env.SKIP_MONETDB == 'false'
       run: |
            mkdir -p monetdb_farm
-
-           echo "pwd" $(pwd)
-           echo "PATH" $PATH
-           echo "HOME" "${HOME}"
-           ls -lisa "${HOME}/monetdb_bin/bin"
-
            pushd tpch-scripts
            ./tpch_build.sh -s ${{ env.SCALE_FACTOR }} -f ~/monetdb_farm
            popd
@@ -257,7 +251,7 @@ jobs:
            popd
 
     - name: Upload benchmark results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@master
       if: env.SKIP_DUCKDB == 'false' || env.SKIP_MONETDB == 'false'
       with:
         name: comparison_results
@@ -271,7 +265,7 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@master
     - uses: r-lib/actions/setup-r@v2
 
     - uses: actions/download-artifact@master
@@ -309,7 +303,7 @@ jobs:
       shell: Rscript {0} 
 
     - name: Upload database comparison plot
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@master
       with:
         name: database_comparison
         path: |
