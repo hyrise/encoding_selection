@@ -199,7 +199,7 @@ jobs:
     - name: Install dependencies
       run: |
            sudo apt-get update -y -qq
-           sudo apt-get install -y -qq ninja-build postgresql-server-dev-all numactl bison # gcc-10 g++-10 cpp-10
+           sudo apt-get install -y -qq ninja-build postgresql-server-dev-all numactl bison
            pip3 install -r python/requirements.txt
 
     - name: Setup MonetDB
