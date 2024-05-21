@@ -19,7 +19,7 @@ env:
 jobs:
   hyrise_full_pipeline:
     name: Hyrise - Full calibration and evaluation pipeline
-    runs-on: ubuntu-23.10
+    runs-on: ubuntu-24.04
 
     outputs:
       core_count: ${{ steps.core_client_counts.outputs.core_count }}
@@ -144,7 +144,7 @@ jobs:
 
   database_comparison:
     name: Database Comparison
-    runs-on: ubuntu-23.10
+    runs-on: ubuntu-24.04
 
     outputs:
       core_count: ${{ steps.core_client_counts.outputs.core_count }}
