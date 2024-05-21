@@ -201,6 +201,7 @@ jobs:
     - name: Install dependencies
       run: |
            sudo apt-get update -y
+           sudo apt search postgresql-server-dev
            DEBIAN_FRONTEND=noninteractive sudo apt-get install -y ninja-build postgresql-server-dev-all numactl bison python3-venv
            python3 -m venv ~/venv
            source ~/venv/bin/activate
