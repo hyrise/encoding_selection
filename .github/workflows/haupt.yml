@@ -42,12 +42,12 @@ jobs:
            sudo apt-get update -y -qq
            sudo apt search postgresql-server-dev
            # We don't use Hyrise's install_dependencies script as it includes much more than needed for this small setup here.
-           sudo apt-get install -y ninja-build libboost-all-dev postgresql-server-dev-16 libtbb-dev systemtap-sdt-dev lld numactl python3-venv
-           python3 -m venv ~/venv
+           sudo apt-get install -y ninja-build libboost-all-dev postgresql-server-dev-16 libtbb-dev systemtap-sdt-dev lld numactl python3.11-full python3.11-venv
+           python3.11 -m venv ~/venv
            source ~/venv/bin/activate
-           python -m ensurepip --upgrade
-           python -m pip install --upgrade pip
-           python -m pip install --upgrade setuptools
+           #python -m ensurepip --upgrade
+           #python -m pip install --upgrade pip
+           #python -m pip install --upgrade setuptools
            #pip3 install setuptools  # --quiet ... needed for latest Python version, re-check later
            python -m pip  install -r python/requirements.txt # --quiet
 
