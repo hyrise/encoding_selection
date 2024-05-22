@@ -34,14 +34,14 @@ jobs:
     - name: Install dependencies for Act setup
       if: ${{ env.ACT }}
       run: |
-           sudo apt-get update -y
-           sudo apt-get install -y git build-essential cmake python3-pip
+           sudo apt-get update -y -qq
+           sudo apt-get install -y -qq git build-essential cmake python3-pip
 
     - name: Install dependencies
       run: |
-           sudo apt-get update -y
+           sudo apt-get update -y -qq
            # We don't use Hyrise's install_dependencies script as it includes much more than needed for this small setup here.
-           sudo apt-get install -y -qq ninja-build libboost-all-dev postgresql-server-dev-all libtbb-dev systemtap-sdt-dev lld numactl
+           sudo apt-get install -y ninja-build libboost-all-dev postgresql-server-dev-all libtbb-dev systemtap-sdt-dev lld numactl
            pip3 install -r python/requirements.txt --quiet
 
     - name: Determine core and client counts for database comparison
