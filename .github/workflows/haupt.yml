@@ -41,9 +41,7 @@ jobs:
       run: |
            sudo apt-get update -y
            # We don't use Hyrise's install_dependencies script as it includes much more than needed for this small setup here.
-           DEBIAN_FRONTEND=noninteractive sudo apt-get install -y ninja-build libboost-all-dev postgresql-server-dev-all libtbb-dev systemtap-sdt-dev lld numactl python3-venv
-           python3 -m venv ~/venv
-           source ~/venv/bin/activate
+           sudo apt-get install -y -qq ninja-build libboost-all-dev postgresql-server-dev-all libtbb-dev systemtap-sdt-dev lld numactl
            pip3 install -r python/requirements.txt --quiet
 
     - name: Determine core and client counts for database comparison
