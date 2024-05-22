@@ -236,6 +236,7 @@ jobs:
       if: env.SKIP_MONETDB == 'false'
       run: |
            pushd python
+           source ~/venv/bin/activate
            python3 db_comparison_runner.py monetdb --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --clients=${{ env.CLIENT_COUNT }} --time=${{ env.COMPARISON_RUNTIME }}
            python3 db_comparison_runner.py monetdb --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --determine_size_only
            popd
@@ -256,6 +257,7 @@ jobs:
       if: env.SKIP_DUCKDB == 'false'
       run: |
            pushd python
+           source ~/venv/bin/activate
            python3 db_comparison_runner.py duckdb --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --clients=${{ env.CLIENT_COUNT }} --time=${{ env.COMPARISON_RUNTIME }}
            python3 db_comparison_runner.py duckdb --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --determine_size_only
            popd
