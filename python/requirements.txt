@@ -5,8 +5,8 @@ multiprocess == 0.70.16
 numpy == 1.26.4
 pandas == 2.2.2
 pymonetdb == 1.8.1
-psycopg2-binary >= 2.9.8
+psycopg2-binary == 2.9.9
 PuLP == 2.8.0
-scikit-learn >= 1.5.0
+scikit-learn == 1.5.0
 #scikit-learn-intelex == 2021.5.3  # Used for fast regressions; might cause issues on the GitHub runners (requires Intel CPU)
 xgboost == 2.0.3
