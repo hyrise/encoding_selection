@@ -8,6 +8,5 @@ pymonetdb == 1.5.0
 psycopg2 == 2.9.3
 PuLP == 2.6.0
 scikit-learn == 1.0.2
-setuptools >= 69.0.0
 #scikit-learn-intelex == 2021.5.3  # Used for fast regressions; might cause issues on the GitHub runners (requires Intel CPU)
 xgboost == 1.5.2
