@@ -34,17 +34,18 @@ jobs:
     - name: Install dependencies for Act setup
       if: ${{ env.ACT }}
       run: |
-           sudo apt-get update -y
-           sudo apt-get install -y git build-essential cmake python3-pip
+           sudo apt-get update -y -qq
+           sudo apt-get install -y -qq git build-essential cmake python3-pip
 
     - name: Install dependencies
       run: |
-           sudo apt-get update -y
+           sudo apt-get update -y -qq
+           sudo apt search postgresql-server-dev
            # We don't use Hyrise's install_dependencies script as it includes much more than needed for this small setup here.
-           DEBIAN_FRONTEND=noninteractive sudo apt-get install -y ninja-build libboost-all-dev postgresql-server-dev-all libtbb-dev systemtap-sdt-dev lld numactl python3-venv
-           python3 -m venv ~/venv
-           source ~/venv/bin/activate
-           pip3 install -r python/requirements.txt --quiet
+           sudo apt-get install -y ninja-build libboost-all-dev postgresql-server-dev-14 libtbb-dev systemtap-sdt-dev lld numactl python3-venv
+           # python3 -m venv ~/venv
+           # source ~/venv/bin/activate
+           pip3 install -r python/requirements.txt # --quiet
 
     - name: Determine core and client counts for database comparison
       id: core_client_counts
@@ -203,7 +204,7 @@ jobs:
            sudo apt-get update -y
            sudo apt search postgresql-common
            sudo apt search postgresql-server-dev
-           DEBIAN_FRONTEND=noninteractive sudo apt-get install -y ninja-build postgresql-server-dev-all numactl bison python3-venv
+           DEBIAN_FRONTEND=noninteractive sudo apt-get install -y ninja-build postgresql-server-dev-14 numactl bison python3-venv
            python3 -m venv ~/venv
            source ~/venv/bin/activate
            pip3 install -r python/requirements.txt
@@ -268,7 +269,7 @@ jobs:
   plotting:
     needs: [hyrise_full_pipeline, database_comparison]
     name: Plotting
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
     - uses: actions/checkout@master
