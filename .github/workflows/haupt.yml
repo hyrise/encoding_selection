@@ -45,8 +45,10 @@ jobs:
            sudo apt-get install -y ninja-build libboost-all-dev postgresql-server-dev-16 libtbb-dev systemtap-sdt-dev lld numactl python3-venv
            python3 -m venv ~/venv
            source ~/venv/bin/activate
-           pip3 install setuptools  # --quiet ... needed for latest Python version, re-check later
-           pip3 install -r python/requirements.txt # --quiet
+           python -m ensurepip --upgrade
+           python -m pip install --upgrade setuptools
+           #pip3 install setuptools  # --quiet ... needed for latest Python version, re-check later
+           python -m pip  install -r python/requirements.txt # --quiet
 
     - name: Determine core and client counts for database comparison
       id: core_client_counts
