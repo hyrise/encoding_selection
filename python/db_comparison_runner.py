@@ -298,7 +298,7 @@ for query_id in benchmark_queries:
     if time_left < 0:
       break
     print('\rBenchmarking {}... {:.0f} seconds left'.format(query_name, time_left), end="")
-    time.sleep(1)
+    time.sleep(min(10, time_left))
 
   while True:
     joined_threads = 0

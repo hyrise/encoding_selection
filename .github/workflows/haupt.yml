@@ -271,7 +271,6 @@ jobs:
     needs: [hyrise_full_pipeline, database_comparison]
     name: Plotting
     runs-on: ubuntu-24.04
-
     steps:
     - uses: actions/checkout@master
     - uses: r-lib/actions/setup-r@v2
