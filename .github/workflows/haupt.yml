@@ -42,7 +42,7 @@ jobs:
            sudo apt-get update -y -qq
            sudo apt search postgresql-server-dev
            # We don't use Hyrise's install_dependencies script as it includes much more than needed for this small setup here.
-           sudo apt-get install -y ninja-build libboost-all-dev postgresql-server-dev-14 libtbb-dev systemtap-sdt-dev lld numactl python3-venv
+           sudo apt-get install -y ninja-build libboost-all-dev postgresql-server-dev-16 libtbb-dev systemtap-sdt-dev lld numactl python3-venv
            # python3 -m venv ~/venv
            # source ~/venv/bin/activate
            pip3 install -r python/requirements.txt # --quiet
@@ -201,13 +201,11 @@ jobs:
 
     - name: Install dependencies
       run: |
-           sudo apt-get update -y
-           sudo apt search postgresql-common
-           sudo apt search postgresql-server-dev
-           DEBIAN_FRONTEND=noninteractive sudo apt-get install -y ninja-build postgresql-server-dev-14 numactl bison python3-venv
-           python3 -m venv ~/venv
-           source ~/venv/bin/activate
-           pip3 install -r python/requirements.txt
+           sudo apt-get update -y -qq
+           DEBIAN_FRONTEND=noninteractive sudo apt-get install -y -qq ninja-build postgresql-server-dev-16 numactl bison python3-venv
+           #python3 -m venv ~/venv
+           #source ~/venv/bin/activate
+           pip3 install -r python/requirements.txt #--quiet
 
     - name: Setup MonetDB
       if: env.SKIP_MONETDB == 'false'
