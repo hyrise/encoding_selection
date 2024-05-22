@@ -40,10 +40,8 @@ jobs:
     - name: Install dependencies
       run: |
            sudo apt-get update -y -qq
-           sudo apt-get upgrade -y -qq
-           sudo apt search postgresql-server-dev
            # We don't use Hyrise's install_dependencies script as it includes much more than needed for this small setup here.
-           sudo apt-get install -y ninja-build libboost-all-dev postgresql-server-dev-all libtbb-dev systemtap-sdt-dev lld numactl
+           sudo apt-get install -y ninja-build libboost-all-dev postgresql-server-dev-14 libtbb-dev systemtap-sdt-dev lld numactl
            pip3 install -r python/requirements.txt --quiet
 
     - name: Determine core and client counts for database comparison
