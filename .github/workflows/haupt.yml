@@ -85,6 +85,7 @@ jobs:
            rm -rf encoding_plugin/rel/resources || true # mkdir -p does not work wity symlinks. Just get it done.
            mkdir -p encoding_plugin/rel/resources/benchmark/tpcds/tpcds-result-reproduction/query_qualification
 
+           source ~/venv/bin/activate
            pushd python > /dev/null
            python3 runner.py --hyrise_server_path=../encoding_plugin/rel/  --base_benchmark_runs=1 --single_benchmark=TPC-H --execute=calibration --scale_factor ${{ env.SCALE_FACTOR }} --random_encoding_configs_count=3
            popd > /dev/null
@@ -93,6 +94,7 @@ jobs:
       id: calibration
       if: env.SKIP_HYRISE == 'false'
       run: |
+           source ~/venv/bin/activate
            pushd python > /dev/null
            calibration_run=`ls -t calibration | grep -v 'results' | head -n1`
            # Run pipeline without selection.
@@ -105,6 +107,7 @@ jobs:
     - name: Run encoding selection
       if: env.SKIP_HYRISE == 'false'
       run: |
+           source ~/venv/bin/activate
            pushd python > /dev/null
            # Run selection. For simplicity: use calibration workload as workload to optimize.
            python3 encoding_selection_pipeline.py --calibration_dir=calibration/${{ env.CALIBRATION_RUN }} --use_calibration_as_workload --skip_phases load_csv prepare learn_runtime learn_size --budget_steps_stretch_factor 5.0
@@ -113,6 +116,7 @@ jobs:
     - name: Benchmark encoding configurations
       if: env.SKIP_HYRISE == 'false'
       run: |
+           source ~/venv/bin/activate
            pushd python
            python3 runner.py --hyrise_server_path=../encoding_plugin/rel/ --execute=evaluation --configurations_dir "evaluation/${{ env.CALIBRATION_RUN }}/configurations__default/TPCH" --results_dir "evaluation/${{ env.CALIBRATION_RUN }}/results/TPCH" --scale_factor ${{ env.SCALE_FACTOR }} --single_benchmark=TPCH --port 5551
            popd 
@@ -120,6 +124,7 @@ jobs:
     - name: Benchmark non-constrained Hyrise (database comparison)
       if: env.SKIP_HYRISE == 'false'
       run: |
+           source ~/venv/bin/activate
            pushd python
            python3 db_comparison_runner.py hyrise --hyrise_server_path=../encoding_plugin/rel/ --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --clients=${{ env.CLIENT_COUNT }} --time=${{ env.COMPARISON_RUNTIME }}
            python3 db_comparison_runner.py hyrise --hyrise_server_path=../encoding_plugin/rel/ --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --determine_size_only
@@ -128,6 +133,7 @@ jobs:
     - name: Benchmark budget-constrained Hyrise (database comparison)
       if: env.SKIP_HYRISE == 'false'
       run: |
+           source ~/venv/bin/activate
            pushd python
            python3 runner.py --hyrise_server_path=../encoding_plugin/rel/ --execute=evaluation --configurations_dir "evaluation/${{ env.CALIBRATION_RUN }}/configurations__default/TPCH/LPCompressionSelection" --results_dir "evaluation/${{ env.CALIBRATION_RUN }}/results/TPCH/LPCompressionSelection" --scale_factor ${{ env.SCALE_FACTOR }} --single_benchmark=TPCH --port 5551 --cores=${{ env.CORE_COUNT }} --clients=${{ env.CLIENT_COUNT }}
            popd 
@@ -257,6 +263,8 @@ jobs:
       if: env.SKIP_DUCKDB == 'false'
       run: |
            pushd python
+           ls -lisa /home/runner/tpch-dbgen
+           ls -lisa /home/runner/tpch-dbgen/sf0.5
            source ~/venv/bin/activate
            python3 db_comparison_runner.py duckdb --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --clients=${{ env.CLIENT_COUNT }} --time=${{ env.COMPARISON_RUNTIME }}
            python3 db_comparison_runner.py duckdb --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --determine_size_only
