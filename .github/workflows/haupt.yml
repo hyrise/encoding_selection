@@ -43,7 +43,7 @@ jobs:
            sudo add-apt-repository ppa:deadsnakes/ppa --yes
            sudo apt search postgresql-server-dev
            # We don't use Hyrise's install_dependencies script as it includes much more than needed for this small setup here.
-           sudo apt-get install -y ninja-build libboost-all-dev postgresql-server-dev-16 libtbb-dev libsqlite3-dev systemtap-sdt-dev lld numactl python3.11-full python3.11-venv
+           sudo apt-get install -y ninja-build libboost-all-dev postgresql-server-dev-16 libtbb-dev libreadline-dev libsqlite3-dev systemtap-sdt-dev lld numactl python3.11-full python3.11-venv
            python3.11 -m venv ~/venv
            source ~/venv/bin/activate
            #python -m ensurepip --upgrade
