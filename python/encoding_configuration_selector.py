@@ -65,11 +65,12 @@ def run_models_for_budget(pid, budget, budget_start, workload, models_to_evaluat
         if not f"model_max_size__{model_name}" in manager:
             manager[f"model_max_size__{model_name}"] = -17
 
-        # We usually use Gurobi but now use the open-source solver HiGHS (unfortunately, not part of the paper
-        # evaluation; first release in early 2022). Cbc is also possible but has problems with larger problems
-        # (e.g., robust configurations).
-        sel.set_solver("HiGHS")                                
-        sel.set_thread_count(2)
+        # We usually use Gurobi or use the open-source solver HiGHS (unfortunately, not part of the paper
+        # evaluation; first release in early 2022). For GH actions, we use Cbc as it comes with PuLP.
+        # However, please be aware that Cbc can be slow and has problems with larger problems (e.g.,
+        # robust configurations).
+        sel.set_solver("Cbc")                                
+        sel.set_thread_count(1)
 
         if "alpha" in model_probs:
             sel.set_alpha(model_probs["alpha"])
