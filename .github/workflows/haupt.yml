@@ -254,6 +254,7 @@ jobs:
            make &> /dev/null
            ./dbgen -s ${{ env.SCALE_FACTOR }} -f
            mkdir -p sf${{ env.SCALE_FACTOR }}
+           chmod +x *.tbl
            mv *.tbl sf${{ env.SCALE_FACTOR }}          
            popd
            mv tpch-dbgen ~
