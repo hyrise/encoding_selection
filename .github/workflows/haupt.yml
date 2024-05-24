@@ -10,8 +10,8 @@ defaults:
     shell: bash
 
 env:
-  SKIP_HYRISE: true
-  SKIP_MONETDB: true
+  SKIP_HYRISE: false
+  SKIP_MONETDB: false
   SKIP_DUCKDB: false
   SCALE_FACTOR: 0.5
   CMAKE_GENERATOR: Ninja
@@ -46,11 +46,7 @@ jobs:
            sudo apt-get install -y ninja-build libboost-all-dev postgresql-server-dev-16 libtbb-dev libreadline-dev libsqlite3-dev systemtap-sdt-dev lld numactl python3.11-full python3.11-venv
            python3.11 -m venv ~/venv
            source ~/venv/bin/activate
-           #python -m ensurepip --upgrade
-           #python -m pip install --upgrade pip
-           #python -m pip install --upgrade setuptools
-           #pip3 install setuptools  # --quiet ... needed for latest Python version, re-check later
-           python -m pip  install -r python/requirements.txt # --quiet
+           python -m pip  install -r python/requirements.txt --quiet
 
     - name: Determine core and client counts for database comparison
       id: core_client_counts
@@ -172,7 +168,7 @@ jobs:
       with:
         token: ${{ secrets.PAT }}
         repository: MonetDB/MonetDB
-        ref: 'Sep2022_7'  # checking out the latest tag as the current master does not compile with GCC 11 (as of 2022-11-17) 
+        ref: 'Dec2023_9'
         path: ./MonetDB
 
     - uses: actions/checkout@master
@@ -213,10 +209,10 @@ jobs:
     - name: Install dependencies
       run: |
            sudo apt-get update -y -qq
-           DEBIAN_FRONTEND=noninteractive sudo apt-get install -y -qq ninja-build libsqlite3-dev postgresql-server-dev-16 numactl bison python3-venv
+           sudo apt-get install -y -qq ninja-build libsqlite3-dev postgresql-server-dev-16 numactl bison python3-venv
            python3 -m venv ~/venv
            source ~/venv/bin/activate
-           pip3 install -r python/requirements.txt #--quiet
+           pip3 install -r python/requirements.txt # Not using --quiet to log the installed DuckDB version.
 
     - name: Setup MonetDB
       if: env.SKIP_MONETDB == 'false'
@@ -254,7 +250,7 @@ jobs:
            make &> /dev/null
            ./dbgen -s ${{ env.SCALE_FACTOR }} -f
            mkdir -p sf${{ env.SCALE_FACTOR }}
-           chmod 644 *.tbl
+           chmod 644 *.tbl  # Unsure what happens here, but without mode change, DuckDB cannot read nation.tbl as it has mode 111 (seen only with GH action on 24.04).
            mv *.tbl sf${{ env.SCALE_FACTOR }}          
            popd
            mv tpch-dbgen ~
