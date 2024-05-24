@@ -1,4 +1,4 @@
-duckdb == 0.10.3
+duckdb >= 0.10.3
 joblib == 1.4.2
 matplotlib == 3.9.0
 multiprocess == 0.70.16
