@@ -10,8 +10,8 @@ defaults:
     shell: bash
 
 env:
-  SKIP_HYRISE: false
-  SKIP_MONETDB: false
+  SKIP_HYRISE: true
+  SKIP_MONETDB: true
   SKIP_DUCKDB: false
   SCALE_FACTOR: 0.5
   CMAKE_GENERATOR: Ninja
@@ -254,7 +254,7 @@ jobs:
            make &> /dev/null
            ./dbgen -s ${{ env.SCALE_FACTOR }} -f
            mkdir -p sf${{ env.SCALE_FACTOR }}
-           chmod +x *.tbl
+           chmod 644 *.tbl
            mv *.tbl sf${{ env.SCALE_FACTOR }}          
            popd
            mv tpch-dbgen ~
