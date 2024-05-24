@@ -1,6 +1,8 @@
 name: GitHub-Hauptaktion
 on:
   push:
+    branches:
+      - 'main'
   pull_request:
   schedule:
     - cron: "0 3 17 * *"
