@@ -651,19 +651,22 @@ class LPCompressionSelection(BaseCompressionSelection):
 
         end_problem = datetime.datetime.now()
 
+        # For the paper, we used a time out of 600 s which was plenty using Gurobi. However, when using simpler solvers
+        # (e.g., for GitHub actions) solving can actually take 600 s, which slows the pipeline down too much.
+        github_timeout = 60
         if print_solving_time:
             print('Solving ... ', end='')
         start_solving = datetime.datetime.now()
         if self.solver == 'Gurobi':
-            self.lin_c_sel.solve(pulp.GUROBI_CMD(options=[("Threads", self.thread_count), ("MIPGap", '1e-2'), ('TimeLimit', 600), ('OutputFlag', 0)]))
+            self.lin_c_sel.solve(pulp.GUROBI_CMD(options=[("Threads", self.thread_count), ("MIPGap", '1e-2'), ('TimeLimit', github_timeout), ('OutputFlag', 0)]))
         elif self.solver == 'GLPK':
-            self.lin_c_sel.solve(pulp.GLPK_CMD(msg=0, options=['--mipgap', '1e-2', '--tmlim', '600']))
+            self.lin_c_sel.solve(pulp.GLPK_CMD(msg=0, options=['--mipgap', '1e-2', '--tmlim', str(github_timeout)]))
         elif self.solver == 'Cbc':
-            self.lin_c_sel.solve(pulp.PULP_CBC_CMD(timeLimit=600, msg=0, options=['ratioGAP', '1e-2', 'sec', '1800']))  # Changed gap for GitHub action
+            self.lin_c_sel.solve(pulp.PULP_CBC_CMD(timeLimit=github_timeout, msg=0, options=['ratioGAP', '1e-2', 'sec', '1800']))  # Changed gap for GitHub action
         elif self.solver == 'SCIP':
-            self.lin_c_sel.solve(pulp.apis.scip_api.SCIP_CMD(timeLimit=600, msg=0, options=['-s', 'scip_settings.set']))
+            self.lin_c_sel.solve(pulp.apis.scip_api.SCIP_CMD(timeLimit=github_timeout, msg=0, options=['-s', 'scip_settings.set']))
         elif self.solver == 'HiGHS':
-            self.lin_c_sel.solve(pulp.HiGHS_CMD(timeLimit=600, msg=False))
+            self.lin_c_sel.solve(pulp.HiGHS_CMD(timeLimit=github_timeout, msg=False))
         else:
             sys.exit(f'Solver {self.solver} not supported.')
 
