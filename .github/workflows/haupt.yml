@@ -298,6 +298,9 @@ jobs:
            pushd python
            python3 db_comparison_runner.py hyrise --hyrise_server_path=../hyrise_master/rel/ --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --clients=${{ env.CLIENT_COUNT }} --time=${{ env.COMPARISON_RUNTIME }}
            python3 db_comparison_runner.py hyrise --hyrise_server_path=../hyrise_master/rel/ --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --determine_size_only
+
+           mv db_comparison_results/database_comparison__TPC-H__hyrise.csv db_comparison_results/database_comparison__TPC-H__hyrise_master.csv
+           mv db_comparison_results/size_hyrise__SF${{env.SCALE_FACTOR}}.csv db_comparison_results/size_hyrise_master__SF${{env.SCALE_FACTOR}}.csv
            popd
 
     - name: Upload benchmark results
@@ -340,6 +343,8 @@ jobs:
 
            echo "COMPARISON_CORE_COUNT=${{ needs.database_comparison.outputs.core_count }}" >> $GITHUB_ENV
            echo "COMPARISON_CLIENT_COUNT=${{ needs.database_comparison.outputs.client_count }}" >> $GITHUB_ENV
+
+           ls -lisa results_to_plot
 
    # Install R packages (install action did not work with act)
     - name: Install dependencies
