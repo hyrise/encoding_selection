@@ -11,6 +11,7 @@ defaults:
 
 env:
   SKIP_HYRISE: false
+  SKIP_HYRISE_MASTER: false
   SKIP_MONETDB: false
   SKIP_DUCKDB: false
   SCALE_FACTOR: 0.5
@@ -158,7 +159,7 @@ jobs:
       with:
         token: ${{ secrets.PAT }}
         repository: MonetDB/MonetDB
-        ref: 'Sep2022_7'  # checking out the latest tag as the current master does not compile with GCC 11 (as of 2022-11-17) 
+        ref: 'Dec2023_9'  # checking out the latest tag as the current master does not compile with GCC 11 (as of 2022-11-17) 
         path: ./MonetDB
 
     - uses: actions/checkout@master
@@ -174,6 +175,15 @@ jobs:
         token: ${{ secrets.PAT }}
         repository: electrum/tpch-dbgen
         path: ./tpch-dbgen
+
+    - uses: actions/checkout@master
+      if: env.SKIP_HYRISE_MASTER == 'false'
+      with:
+        token: ${{ secrets.PAT }}
+        repository: hyrise/hyrise
+        path: ./hyrise_master
+        submodules: recursive
+        ref: '8b53b13dc9408fac45169748c4a08c6e046d25df'
 
     - name: Determine client and core counts for database comparison
       id: core_client_counts
@@ -199,7 +209,7 @@ jobs:
     - name: Install dependencies
       run: |
            sudo apt-get update -y -qq
-           sudo apt-get install -y -qq ninja-build postgresql-server-dev-14 numactl bison
+           sudo apt-get install -y -qq ninja-build postgresql-server-dev-14 numactl bison libboost-all-dev libtbb-dev lld
            pip3 install -r python/requirements.txt --quiet
 
     - name: Setup MonetDB
@@ -250,9 +260,27 @@ jobs:
            python3 db_comparison_runner.py duckdb --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --determine_size_only
            popd
 
+    - name: Build Hyrise (master) release server
+      if: env.SKIP_HYRISE_MASTER == 'false'
+      run: |
+           mkdir -p hyrise_master/rel
+           pushd hyrise_master/rel > /dev/null
+           # Erase all encoding types. Hurts performance but allows us to compile in release mode with GitHub runners.
+           cmake -DCMAKE_BUILD_TYPE=Release -DHAVE_POSIX_REGEX=0 -DTHREADS_PREFER_PTHREAD_FLAG=1 -DCMAKE_THREAD_LIBS_INIT="-lpthread" -DCMAKE_HAVE_THREADS_LIBRARY=1 -DCMAKE_USE_PTHREADS_INIT=1 -DERASE_SEGMENT_TYPES=Dictionary,LZ4,RunLength,FSST,FrameOfReference,Unencoded,FixedStringDictionary ..
+           cmake --build . --target hyriseServer
+           popd > /dev/null
+
+    - name: Benchmark Hyrise (master, database comparison)
+      if: env.SKIP_HYRISE_MASTER == 'false'
+      run: |
+           pushd python
+           python3 db_comparison_runner.py hyrise --hyrise_server_path=../hyrise_master/rel/ --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --clients=${{ env.CLIENT_COUNT }} --time=${{ env.COMPARISON_RUNTIME }}
+           python3 db_comparison_runner.py hyrise --hyrise_server_path=../hyrise_master/rel/ --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --determine_size_only
+           popd
+
     - name: Upload benchmark results
       uses: actions/upload-artifact@master
-      if: env.SKIP_DUCKDB == 'false' || env.SKIP_MONETDB == 'false'
+      if: env.SKIP_DUCKDB == 'false' || env.SKIP_MONETDB == 'false' || env.SKIP_HYRISE_MASTER == 'false'
       with:
         name: comparison_results
         path: |
