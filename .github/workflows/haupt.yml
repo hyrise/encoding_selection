@@ -197,7 +197,6 @@ jobs:
         repository: hyrise/hyrise
         path: ./hyrise_master
         submodules: recursive
-        ref: '8b53b13dc9408fac45169748c4a08c6e046d25df'
 
     - name: Determine client and core counts for database comparison
       id: core_client_counts
