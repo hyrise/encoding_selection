@@ -1,6 +1,8 @@
 name: GitHub-Hauptaktion
 on:
   push:
+    branches:
+      - 'main'
   pull_request:
   schedule:
     - cron: "0 3 17 * *"
@@ -19,7 +21,7 @@ env:
 jobs:
   hyrise_full_pipeline:
     name: Hyrise - Full calibration and evaluation pipeline
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     outputs:
       core_count: ${{ steps.core_client_counts.outputs.core_count }}
@@ -40,9 +42,13 @@ jobs:
     - name: Install dependencies
       run: |
            sudo apt-get update -y -qq
+           # Add repository for older python versions. We use 3.11 as there are several issues with 3.12 (e.g., removed distutils and pip problems).
+           sudo add-apt-repository ppa:deadsnakes/ppa --yes
            # We don't use Hyrise's install_dependencies script as it includes much more than needed for this small setup here.
-           sudo apt-get install -y -qq ninja-build libboost-all-dev postgresql-server-dev-14 libtbb-dev systemtap-sdt-dev lld numactl
-           pip3 install -r python/requirements.txt --quiet
+           sudo apt-get install -y ninja-build libboost-all-dev postgresql-server-dev-16 libtbb-dev libreadline-dev libsqlite3-dev systemtap-sdt-dev lld numactl python3.11-full python3.11-venv
+           python3.11 -m venv ~/venv
+           source ~/venv/bin/activate
+           python -m pip  install -r python/requirements.txt --quiet
 
     - name: Determine core and client counts for database comparison
       id: core_client_counts
@@ -65,7 +71,9 @@ jobs:
            mkdir -p encoding_plugin/rel
            pushd encoding_plugin/rel > /dev/null
            # Erase all encoding types. Hurts performance but allows us to compile in release mode with GitHub runners.
-           cmake -DCMAKE_BUILD_TYPE=Release -DHAVE_POSIX_REGEX=0 -DTHREADS_PREFER_PTHREAD_FLAG=1 -DCMAKE_THREAD_LIBS_INIT="-lpthread" -DCMAKE_HAVE_THREADS_LIBRARY=1 -DCMAKE_USE_PTHREADS_INIT=1 -DERASE_SEGMENT_TYPES=Dictionary,LZ4,RunLength,FSST,FrameOfReference,Unencoded,FixedStringDictionary ..
+           # Further, we use the relaxed mode as there are several issues with newer compiler (fixed in Hyrise's master,
+           # but not in the project's code).
+           cmake -DCMAKE_BUILD_TYPE=Release -DHYRISE_RELAXED_BUILD=ON -DERASE_SEGMENT_TYPES=Dictionary,LZ4,RunLength,FSST,FrameOfReference,Unencoded,FixedStringDictionary ..
            cmake --build . --target hyriseServer WorkloadStatisticsPlugin WorkloadHandlerPlugin CommandExecutorPlugin DataCharacteristicsPlugin
            popd > /dev/null
 
@@ -77,6 +85,7 @@ jobs:
            rm -rf encoding_plugin/rel/resources || true # mkdir -p does not work wity symlinks. Just get it done.
            mkdir -p encoding_plugin/rel/resources/benchmark/tpcds/tpcds-result-reproduction/query_qualification
 
+           source ~/venv/bin/activate
            pushd python > /dev/null
            python3 runner.py --hyrise_server_path=../encoding_plugin/rel/  --base_benchmark_runs=1 --single_benchmark=TPC-H --execute=calibration --scale_factor ${{ env.SCALE_FACTOR }} --random_encoding_configs_count=3
            popd > /dev/null
@@ -85,6 +94,7 @@ jobs:
       id: calibration
       if: env.SKIP_HYRISE == 'false'
       run: |
+           source ~/venv/bin/activate
            pushd python > /dev/null
            calibration_run=`ls -t calibration | grep -v 'results' | head -n1`
            # Run pipeline without selection.
@@ -97,6 +107,7 @@ jobs:
     - name: Run encoding selection
       if: env.SKIP_HYRISE == 'false'
       run: |
+           source ~/venv/bin/activate
            pushd python > /dev/null
            # Run selection. For simplicity: use calibration workload as workload to optimize.
            python3 encoding_selection_pipeline.py --calibration_dir=calibration/${{ env.CALIBRATION_RUN }} --use_calibration_as_workload --skip_phases load_csv prepare learn_runtime learn_size --budget_steps_stretch_factor 5.0
@@ -105,6 +116,7 @@ jobs:
     - name: Benchmark encoding configurations
       if: env.SKIP_HYRISE == 'false'
       run: |
+           source ~/venv/bin/activate
            pushd python
            python3 runner.py --hyrise_server_path=../encoding_plugin/rel/ --execute=evaluation --configurations_dir "evaluation/${{ env.CALIBRATION_RUN }}/configurations__default/TPCH" --results_dir "evaluation/${{ env.CALIBRATION_RUN }}/results/TPCH" --scale_factor ${{ env.SCALE_FACTOR }} --single_benchmark=TPCH --port 5551
            popd 
@@ -112,6 +124,7 @@ jobs:
     - name: Benchmark non-constrained Hyrise (database comparison)
       if: env.SKIP_HYRISE == 'false'
       run: |
+           source ~/venv/bin/activate
            pushd python
            python3 db_comparison_runner.py hyrise --hyrise_server_path=../encoding_plugin/rel/ --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --clients=${{ env.CLIENT_COUNT }} --time=${{ env.COMPARISON_RUNTIME }}
            python3 db_comparison_runner.py hyrise --hyrise_server_path=../encoding_plugin/rel/ --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --determine_size_only
@@ -120,6 +133,7 @@ jobs:
     - name: Benchmark budget-constrained Hyrise (database comparison)
       if: env.SKIP_HYRISE == 'false'
       run: |
+           source ~/venv/bin/activate
            pushd python
            python3 runner.py --hyrise_server_path=../encoding_plugin/rel/ --execute=evaluation --configurations_dir "evaluation/${{ env.CALIBRATION_RUN }}/configurations__default/TPCH/LPCompressionSelection" --results_dir "evaluation/${{ env.CALIBRATION_RUN }}/results/TPCH/LPCompressionSelection" --scale_factor ${{ env.SCALE_FACTOR }} --single_benchmark=TPCH --port 5551 --cores=${{ env.CORE_COUNT }} --clients=${{ env.CLIENT_COUNT }}
            popd 
@@ -144,7 +158,7 @@ jobs:
 
   database_comparison:
     name: Database Comparison
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     outputs:
       core_count: ${{ steps.core_client_counts.outputs.core_count }}
@@ -158,7 +172,7 @@ jobs:
       with:
         token: ${{ secrets.PAT }}
         repository: MonetDB/MonetDB
-        ref: 'Sep2022_7'  # checking out the latest tag as the current master does not compile with GCC 11 (as of 2022-11-17) 
+        ref: 'Dec2023_9'
         path: ./MonetDB
 
     - uses: actions/checkout@master
@@ -199,8 +213,10 @@ jobs:
     - name: Install dependencies
       run: |
            sudo apt-get update -y -qq
-           sudo apt-get install -y -qq ninja-build postgresql-server-dev-14 numactl bison
-           pip3 install -r python/requirements.txt --quiet
+           sudo apt-get install -y -qq ninja-build libsqlite3-dev postgresql-server-dev-16 numactl bison python3-venv
+           python3 -m venv ~/venv
+           source ~/venv/bin/activate
+           pip3 install -r python/requirements.txt  # Not using --quiet to log the installed DuckDB version.
 
     - name: Setup MonetDB
       if: env.SKIP_MONETDB == 'false'
@@ -226,6 +242,7 @@ jobs:
       if: env.SKIP_MONETDB == 'false'
       run: |
            pushd python
+           source ~/venv/bin/activate
            python3 db_comparison_runner.py monetdb --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --clients=${{ env.CLIENT_COUNT }} --time=${{ env.COMPARISON_RUNTIME }}
            python3 db_comparison_runner.py monetdb --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --determine_size_only
            popd
@@ -236,6 +253,11 @@ jobs:
            pushd tpch-dbgen
            make &> /dev/null
            ./dbgen -s ${{ env.SCALE_FACTOR }} -f
+
+           # Unsure what happens here, but without mode change, DuckDB cannot read nation.tbl as it has mode 111 (seen
+           # only with GH action on 24.04).
+           chmod 644 *.tbl
+
            mkdir -p sf${{ env.SCALE_FACTOR }}
            mv *.tbl sf${{ env.SCALE_FACTOR }}          
            popd
@@ -246,6 +268,7 @@ jobs:
       if: env.SKIP_DUCKDB == 'false'
       run: |
            pushd python
+           source ~/venv/bin/activate
            python3 db_comparison_runner.py duckdb --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --clients=${{ env.CLIENT_COUNT }} --time=${{ env.COMPARISON_RUNTIME }}
            python3 db_comparison_runner.py duckdb --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --determine_size_only
            popd
@@ -262,8 +285,7 @@ jobs:
   plotting:
     needs: [hyrise_full_pipeline, database_comparison]
     name: Plotting
-    runs-on: ubuntu-22.04
-
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@master
     - uses: r-lib/actions/setup-r@v2
