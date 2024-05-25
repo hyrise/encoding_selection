@@ -216,7 +216,7 @@ jobs:
            sudo apt-get install -y -qq ninja-build libsqlite3-dev postgresql-server-dev-16 numactl bison python3-venv
            python3 -m venv ~/venv
            source ~/venv/bin/activate
-           pip3 install -r python/requirements.txt # Not using --quiet to log the installed DuckDB version.
+           pip3 install -r python/requirements.txt  # Not using --quiet to log the installed DuckDB version.
 
     - name: Setup MonetDB
       if: env.SKIP_MONETDB == 'false'
@@ -253,8 +253,12 @@ jobs:
            pushd tpch-dbgen
            make &> /dev/null
            ./dbgen -s ${{ env.SCALE_FACTOR }} -f
+
+           # Unsure what happens here, but without mode change, DuckDB cannot read nation.tbl as it has mode 111 (seen
+           # only with GH action on 24.04).
+           chmod 644 *.tbl
+
            mkdir -p sf${{ env.SCALE_FACTOR }}
-           chmod 644 *.tbl  # Unsure what happens here, but without mode change, DuckDB cannot read nation.tbl as it has mode 111 (seen only with GH action on 24.04).
            mv *.tbl sf${{ env.SCALE_FACTOR }}          
            popd
            mv tpch-dbgen ~
