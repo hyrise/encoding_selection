@@ -71,6 +71,8 @@ jobs:
            mkdir -p encoding_plugin/rel
            pushd encoding_plugin/rel > /dev/null
            # Erase all encoding types. Hurts performance but allows us to compile in release mode with GitHub runners.
+           # Further, we use the relaxed mode as there are several issues with newer compiler (fixed in Hyrise's master,
+           # but not in the project's code).
            cmake -DCMAKE_BUILD_TYPE=Release -DHYRISE_RELAXED_BUILD=ON -DERASE_SEGMENT_TYPES=Dictionary,LZ4,RunLength,FSST,FrameOfReference,Unencoded,FixedStringDictionary ..
            cmake --build . --target hyriseServer WorkloadStatisticsPlugin WorkloadHandlerPlugin CommandExecutorPlugin DataCharacteristicsPlugin
            popd > /dev/null
