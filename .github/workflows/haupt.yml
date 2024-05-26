@@ -222,7 +222,7 @@ jobs:
     - name: Install dependencies
       run: |
            sudo apt-get update -y -qq
-           sudo apt-get install -y -qq ninja-build libsqlite3-dev postgresql-server-dev-16 numactl bison python3-venv libboost-all-dev libtbb-dev lld
+           sudo apt-get install -y -qq ninja-build libsqlite3-dev postgresql-server-dev-16 numactl bison python3-venv libboost-all-dev libtbb-dev lld libreadline-dev
            python3 -m venv ~/venv
            source ~/venv/bin/activate
            pip3 install -r python/requirements.txt  # Not using --quiet to log the installed DuckDB version.
