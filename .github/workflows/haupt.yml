@@ -12,10 +12,10 @@ defaults:
     shell: bash
 
 env:
-  SKIP_HYRISE: true
+  SKIP_HYRISE: false
   SKIP_HYRISE_MASTER: false
-  SKIP_MONETDB: true
-  SKIP_DUCKDB: true
+  SKIP_MONETDB: false
+  SKIP_DUCKDB: false
   SCALE_FACTOR: 0.5
   CMAKE_GENERATOR: Ninja
 
