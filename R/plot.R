@@ -38,10 +38,14 @@ hyrise_lp$is_geom_line <- TRUE
 monet_runtimes <- read.csv(paste0(results_dir, "/database_comparison__TPC-H__monetdb.csv"))
 hyrise_runtimes <- read.csv(paste0(results_dir, "/database_comparison__TPC-H__hyrise.csv"))
 duckdb_runtimes <- read.csv(paste0(results_dir, "/database_comparison__TPC-H__duckdb.csv"))
+hyrise_master_runtimes <- read.csv(paste0(results_dir, "/database_comparison__TPC-H__hyrise_master.csv"))
+hyrise_master_runtimes$DATABASE_SYSTEM = "hyrise_master"
 
 monet_size <- read.csv(paste0(results_dir, "/size_monetdb__SF", scale_factor, ".csv"))
 hyrise_size <- read.csv(paste0(results_dir, "/size_hyrise__SF", scale_factor, ".csv"))
 duckdb_size <- read.csv(paste0(results_dir, "/size_duckdb__SF", scale_factor, ".csv"))
+hyrise_master_size <- read.csv(paste0(results_dir, "/size_hyrise_master__SF", scale_factor, ".csv"))
+hyrise_master_size$DATABASE_SYSTEM = "hyrise_master"
 
 runtimes <- rbind(monet_runtimes, hyrise_runtimes, duckdb_runtimes)
 sizes <- rbind(monet_size, hyrise_size, duckdb_size)
@@ -66,6 +70,7 @@ joined <- rbind(joined, first_lp)
 joined$DATABASE_SYSTEM[which(joined$DATABASE_SYSTEM == "duckdb")] <- "DuckDB"
 joined$DATABASE_SYSTEM[which(joined$DATABASE_SYSTEM == "monetdb")] <- "MonetDB"
 joined$DATABASE_SYSTEM[which(joined$DATABASE_SYSTEM == "hyrise")] <- "Default Hyrise"
+joined$DATABASE_SYSTEM[which(joined$DATABASE_SYSTEM == "hyrise")] <- "Hyrise Master"
 
 max_size <- max(joined$size_gb)
 max_throughput <- max(joined$runs_per_hour)
