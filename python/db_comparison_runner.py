@@ -297,7 +297,7 @@ for query_id in benchmark_queries:
     time_left = start_time + timeout - time.time()
     if time_left < 0:
       break
-    print('\rBenchmarking {}... {:.0f} seconds left'.format(query_name, time_left), end="")
+    print('\rBenchmarking {}... {:.0f} seconds left'.format(query_name, time_left), end="", flush=True)
     time.sleep(min(10, time_left))
 
   while True:
