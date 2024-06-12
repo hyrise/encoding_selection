@@ -128,6 +128,7 @@ elif args.dbms == 'hyrise':
   time.sleep(5)
   while True:
     line = dbms_process.stdout.readline()
+    print(line, flush=True)
     if b'Server started at' in line:
       break
 elif args.dbms == 'umbra':
