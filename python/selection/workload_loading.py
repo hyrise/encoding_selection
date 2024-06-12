@@ -376,19 +376,19 @@ def parse_file_based_workload(workload_folder, runtime_models_folder, size_model
                    __table_scans.groupby(['QUERY_HASH', 'OPERATOR_HASH'], dropna=False).prediction.max().sum()
             table_scans_grouped = __table_scans.groupby(['TABLE_NAME', 'COLUMN_NAME', 'ENCODING_TYPE', 'VECTOR_COMPRESSION_TYPE'],
                                                         dropna=False).agg({'change': 'sum'}).reset_index()
-            results_grouped = results_grouped.append(table_scans_grouped, ignore_index=True)
+            results_grouped = pd.concat([results_grouped, table_scans_grouped])
         if load_aggregations:
             if 'TABLE_NAME' not in __aggregates.columns:
                 add_columns_for_grouping(__aggregates)
 
-            results_appended = results_appended.append(__aggregates, sort=False, ignore_index=True)
+            results_appended = pd.concat([results_appended, __aggregates])
             assert __aggregates.groupby(['QUERY_HASH', 'OPERATOR_HASH'], dropna=False).prediction.min().sum() == \
                    __aggregates.groupby(['QUERY_HASH', 'OPERATOR_HASH'], dropna=False).prediction.max().sum()
             aggregates_grouped = __aggregates.groupby(['TABLE_NAME', 'COLUMN_NAME', 'ENCODING_TYPE', 'VECTOR_COMPRESSION_TYPE'],
                                                       dropna=False).agg({'change': 'sum'}).reset_index()
-            results_grouped = results_grouped.append(aggregates_grouped, ignore_index=True)
+            results_grouped = pd.concat([results_grouped, aggregates_grouped])
         if load_joins:
-            results_appended = results_appended.append(__joins, sort=False, ignore_index=True)
+            results_appended = pd.concat([results_appended, __joins])
 
             # check that we have only a single prediction value per operator
             assert __joins.groupby(['QUERY_HASH', 'OPERATOR_HASH', 'JOIN_MODEL_TYPE', 'materialize_side']).prediction.min().sum() == \
@@ -397,19 +397,19 @@ def parse_file_based_workload(workload_folder, runtime_models_folder, size_model
             # we could also group by join_model_type here, but that shouldn't matter here any longer as we are not
             # interested in the differences between stages
             joins_grouped = __joins.groupby(['TABLE_NAME', 'COLUMN_NAME', 'ENCODING_TYPE', 'VECTOR_COMPRESSION_TYPE']).agg({'change': 'sum'}).reset_index()
-            results_grouped = results_grouped.append(joins_grouped, ignore_index=True)
+            results_grouped = pd.concat([results_grouped, joins_grouped])
         if load_projections and __projections is not None:
             if 'TABLE_NAME' not in __projections.columns:
                 add_columns_for_grouping(__projections)
 
-            results_appended = results_appended.append(__projections, sort=False, ignore_index=True)
+            results_appended = pd.concat([results_appended, __projections])
             # check that we have only a single prediction value per operator
             assert __projections.groupby(['QUERY_HASH', 'OPERATOR_HASH']).prediction.min().sum() == \
                    __projections.groupby(['QUERY_HASH', 'OPERATOR_HASH']).prediction.max().sum()
 
             projections_grouped = __projections.groupby(['TABLE_NAME', 'COLUMN_NAME', 'ENCODING_TYPE', 'VECTOR_COMPRESSION_TYPE'],
                                                         dropna=False).agg({'change': 'sum'}).reset_index()
-            results_grouped = results_grouped.append(projections_grouped, ignore_index=True)
+            results_grouped = pd.concat([results_grouped, projections_grouped])
 
             assert len(__projections.query('ENCODING_TYPE == "Dictionary" and VECTOR_COMPRESSION_TYPE == "FixedSize2ByteAligned" and abs(change) > 0.0')) == 0
 

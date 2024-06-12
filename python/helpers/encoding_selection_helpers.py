@@ -189,7 +189,7 @@ def evaluate_and_plot(df, X, y, models, skip_plot = False, plot_file_name = None
     previous_results_path = Path(plot_file_name).parent / "model_evaluation.csv"
     if previous_results_path.exists():
         df_plotting_previous = pd.read_csv(previous_results_path)
-        df_plotting = df_plotting_previous.append(df_plotting, ignore_index=True)
+        df_plotting = pd.concat([df_plotting_previous, df_plotting])
     df_plotting.to_csv(previous_results_path, index=False)
 
 
