@@ -289,7 +289,7 @@ jobs:
            mkdir -p hyrise_master/rel
            pushd hyrise_master/rel > /dev/null
            # Erase all encoding types. Hurts performance but allows us to compile in release mode with GitHub runners.
-           cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON -DERASE_SEGMENT_TYPES=Dictionary,LZ4,RunLength,FSST,FrameOfReference,Unencoded,FixedStringDictionary ..
+           cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON -DENABLE_LTO=TRUE -DERASE_SEGMENT_TYPES=Dictionary,LZ4,RunLength,FSST,FrameOfReference,Unencoded,FixedStringDictionary ..
            cmake --build . --target hyriseServer
            popd > /dev/null
 
