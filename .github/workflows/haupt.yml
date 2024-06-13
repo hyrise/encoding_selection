@@ -195,7 +195,6 @@ jobs:
       with:
         token: ${{ secrets.PAT }}
         repository: hyrise/hyrise
-        ref: martin/fix/server_listening
         path: ./hyrise_master
         submodules: recursive
 
