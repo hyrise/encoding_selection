@@ -7,8 +7,8 @@ scale_factor = Sys.getenv("SCALE_FACTOR")
 run_name = Sys.getenv("CALIBRATION_RUN")  # currently not used.
 hyrise_core_count = Sys.getenv("HYRISE_CORE_COUNT")
 hyrise_client_count = Sys.getenv("HYRISE_CLIENT_COUNT")
-comparison_core_count = Sys.getenv("HYRISE_CORE_COUNT")
-comparison_client_count = Sys.getenv("HYRISE_CLIENT_COUNT")
+comparison_core_count = Sys.getenv("COMPARISON_CORE_COUNT")
+comparison_client_count = Sys.getenv("COMPARISON_CLIENT_COUNT")
 
 results_dir = paste0("results_to_plot")
 
@@ -47,8 +47,8 @@ duckdb_size <- read.csv(paste0(results_dir, "/size_duckdb__SF", scale_factor, ".
 hyrise_master_size <- read.csv(paste0(results_dir, "/size_hyrise_master__SF", scale_factor, ".csv"))
 hyrise_master_size$DATABASE_SYSTEM = "hyrise_master"
 
-runtimes <- rbind(monet_runtimes, hyrise_runtimes, duckdb_runtimes)
-sizes <- rbind(monet_size, hyrise_size, duckdb_size)
+runtimes <- rbind(monet_runtimes, hyrise_runtimes, duckdb_runtimes, hyrise_master_runtimes)
+sizes <- rbind(monet_size, hyrise_size, duckdb_size, hyrise_master_size)
 
 runtimes_q_agg <- runtimes %>% group_by(DATABASE_SYSTEM, ITEM_NAME) %>% summarize(median_runtime = mean(RUNTIME_MS), .groups="keep")
 runtimes_db_agg <- runtimes_q_agg %>% group_by(DATABASE_SYSTEM) %>% summarize(cumulative_runtime = sum(median_runtime), .groups="keep")
