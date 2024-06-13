@@ -3,7 +3,7 @@ joblib == 1.4.2
 matplotlib == 3.9.0
 multiprocess == 0.70.16
 numpy == 1.26.4
-pandas == 1.5.3  # Not using 2.x as we widely use DataFrame.append(). Change to pd.concat would be easy though.
+pandas >= 2.0.0 # Not using 2.x as we widely use DataFrame.append(). Change to pd.concat would be easy though.
 pymonetdb == 1.8.1
 psycopg2-binary == 2.9.9
 PuLP == 2.8.0
