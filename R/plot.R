@@ -70,7 +70,7 @@ joined <- rbind(joined, first_lp)
 joined$DATABASE_SYSTEM[which(joined$DATABASE_SYSTEM == "duckdb")] <- "DuckDB"
 joined$DATABASE_SYSTEM[which(joined$DATABASE_SYSTEM == "monetdb")] <- "MonetDB"
 joined$DATABASE_SYSTEM[which(joined$DATABASE_SYSTEM == "hyrise")] <- "Default Hyrise"
-joined$DATABASE_SYSTEM[which(joined$DATABASE_SYSTEM == "hyrise")] <- "Hyrise Master"
+joined$DATABASE_SYSTEM[which(joined$DATABASE_SYSTEM == "hyrise_master")] <- "Hyrise Master"
 
 max_size <- max(joined$size_gb)
 max_throughput <- max(joined$runs_per_hour)
