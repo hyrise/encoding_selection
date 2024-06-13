@@ -250,7 +250,8 @@ def run_compression_selection_comparison(short_name, calibration_run, robustness
 
     dictionary_size = workload['all_dictionary_size']
     dictionary_runtime = workload['all_dictionary_runtime']
-    results_with_static_dictionary = results.append({"MODEL": "Static", "BUDGET": dictionary_size, "SIZE_IN_BYTES": dictionary_size, "CUMULATIVE_RUNTIME_MS": dictionary_runtime}, ignore_index=True)
+  #  results_with_static_dictionary = results.append({"MODEL": "Static", "BUDGET": dictionary_size, "SIZE_IN_BYTES": dictionary_size, "CUMULATIVE_RUNTIME_MS": dictionary_runtime}, ignore_index=True)
+    results_with_static_dictionary = pd.concat([results, pd.DataFrame({"MODEL": "Static", "BUDGET": dictionary_size, "SIZE_IN_BYTES": dictionary_size, "CUMULATIVE_RUNTIME_MS": dictionary_runtime})])
 
     # create static dictonary configuration
     dict_configuration = np.zeros((workload['table_count'], workload['max_row_clusters'], workload['max_column_count']), dtype=np.int32)
