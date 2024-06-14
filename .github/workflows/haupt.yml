@@ -53,6 +53,7 @@ jobs:
 
            g++ --version
            sudo apt search libstdc
+           sudo apt remove libstdc++-14-dev
 
     - name: Determine core and client counts for database comparison
       id: core_client_counts
