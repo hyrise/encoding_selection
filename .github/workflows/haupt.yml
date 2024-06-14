@@ -51,6 +51,9 @@ jobs:
            source ~/venv/bin/activate
            python -m pip  install -r python/requirements.txt --quiet
 
+           g++ --version
+           sudo apt search libstdc
+
     - name: Determine core and client counts for database comparison
       id: core_client_counts
       run: |
