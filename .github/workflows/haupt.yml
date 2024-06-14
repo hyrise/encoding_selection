@@ -54,7 +54,7 @@ jobs:
            g++ --version
            sudo apt search libstdc
            sudo apt remove libstdc++-14-dev
-           sudo apt install --reinstall libstdc++-13-dev
+           sudo apt install --reinstall libstdc++-13-dev clang lld
 
     - name: Determine core and client counts for database comparison
       id: core_client_counts
