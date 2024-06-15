@@ -78,7 +78,7 @@ jobs:
            pushd encoding_plugin/rel > /dev/null
            # We use the relaxed mode as there are several issues with newer compiler (fixed in Hyrise's master,
            # but not in the project's code).
-           cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON ..
+           cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON  -D CMAKE_CXX_FLAGS="-Wno-deprecated-declarations" ..
            cmake --build . --target hyriseServer WorkloadStatisticsPlugin WorkloadHandlerPlugin CommandExecutorPlugin DataCharacteristicsPlugin
            popd > /dev/null
 
