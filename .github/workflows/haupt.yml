@@ -226,8 +226,8 @@ jobs:
     - name: Install dependencies
       run: |
            sudo apt-get update -y -qq
-           # llvm-linker-tools required for LTO with llvm 18. See https://github.com/llvm/llvm-project/issues/87553
-           sudo apt-get install -y -qq ninja-build libsqlite3-dev postgresql-server-dev-16 numactl bison python3-venv libboost-all-dev libtbb-dev lld libreadline-dev clang lld llvm-linker-tools
+           # llvm-18-linker-tools required for LTO with llvm 18. See https://github.com/llvm/llvm-project/issues/87553
+           sudo apt-get install -y -qq ninja-build libsqlite3-dev postgresql-server-dev-16 numactl bison python3-venv libboost-all-dev libtbb-dev libreadline-dev clang-18 lld-18 llvm-18-linker-tools
            python3 -m venv ~/venv
            source ~/venv/bin/activate
            pip3 install -r python/requirements.txt  # Not using --quiet to log the installed DuckDB version.
@@ -292,7 +292,7 @@ jobs:
       run: |
            mkdir -p hyrise_master/rel
            pushd hyrise_master/rel > /dev/null
-           cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON -DENABLE_LTO=TRUE ..
+           cmake -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18 -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON -DENABLE_LTO=TRUE ..
            cmake --build . --target hyriseServer
            popd > /dev/null
 
