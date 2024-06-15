@@ -51,10 +51,10 @@ jobs:
            source ~/venv/bin/activate
            python -m pip  install -r python/requirements.txt --quiet
 
-           g++ --version
-           sudo apt search libstdc
-           sudo apt remove libstdc++-14-dev
-           sudo apt install --reinstall libstdc++-13-dev clang lld
+           #g++ --version
+           #sudo apt search libstdc
+           #sudo apt remove libstdc++-14-dev
+           #sudo apt install --reinstall libstdc++-13-dev clang lld
 
     - name: Determine core and client counts for database comparison
       id: core_client_counts
@@ -291,7 +291,7 @@ jobs:
       run: |
            mkdir -p hyrise_master/rel
            pushd hyrise_master/rel > /dev/null
-           cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON ..
+           cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON ..
            cmake --build . --target hyriseServer
            popd > /dev/null
 
