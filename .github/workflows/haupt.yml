@@ -226,10 +226,12 @@ jobs:
     - name: Install dependencies
       run: |
            sudo apt-get update -y -qq
-           sudo apt search linker-tools
-           sudo apt-get install --reinstall llvm-18-linker-tools
+           ls -1 /usr/lib/llvm-1?/lib/LLVMgold.so
+           sudo apt-get install libclang-rt-dev
+           # sudo apt-get install --reinstall llvm-18-linker-tools
            # llvm-18-linker-tools required for LTO with llvm 18. See https://github.com/llvm/llvm-project/issues/87553
            sudo apt-get install -y -qq ninja-build libsqlite3-dev postgresql-server-dev-16 numactl bison python3-venv libboost-all-dev libtbb-dev libreadline-dev clang-18 lld-18 llvm-18-linker-tools
+           ls -1 /usr/lib/llvm-1?/lib/LLVMgold.so
            python3 -m venv ~/venv
            source ~/venv/bin/activate
            pip3 install -r python/requirements.txt  # Not using --quiet to log the installed DuckDB version.
