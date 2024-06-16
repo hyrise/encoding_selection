@@ -46,15 +46,13 @@ jobs:
            # Add repository for older python versions. We use 3.11 as there are several issues with 3.12 (e.g., removed distutils and pip problems).
            sudo add-apt-repository ppa:deadsnakes/ppa --yes
            # We don't use Hyrise's install_dependencies script as it includes much more than needed for this small setup here.
-           sudo apt-get install -y ninja-build libboost-all-dev postgresql-server-dev-16 libtbb-dev libreadline-dev libsqlite3-dev systemtap-sdt-dev lld numactl python3.11-full python3.11-venv clang lld
+           sudo apt-get install -y ninja-build libboost-all-dev postgresql-server-dev-16 libtbb-dev libreadline-dev libsqlite3-dev systemtap-sdt-dev numactl python3.11-full python3.11-venv clang-17 lld-17
+           sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-17 50
+           sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-17 50
+           sudo update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-17 50
            python3.11 -m venv ~/venv
            source ~/venv/bin/activate
            python -m pip  install -r python/requirements.txt --quiet
-
-           #g++ --version
-           #sudo apt search libstdc
-           #sudo apt remove libstdc++-14-dev
-           #sudo apt install --reinstall libstdc++-13-dev clang lld
 
     - name: Determine core and client counts for database comparison
       id: core_client_counts
@@ -226,15 +224,16 @@ jobs:
     - name: Install dependencies
       run: |
            sudo apt-get update -y -qq
-           ls -1 /usr/lib/llvm-1?/lib/LLVMgold.so
-           sudo apt-get install libclang-rt-dev
-           # sudo apt-get install --reinstall llvm-18-linker-tools
-           # llvm-18-linker-tools required for LTO with llvm 18. See https://github.com/llvm/llvm-project/issues/87553
-           sudo apt-get install -y -qq ninja-build libsqlite3-dev postgresql-server-dev-16 numactl bison python3-venv libboost-all-dev libtbb-dev libreadline-dev clang-18 lld-18 llvm-18-linker-tools
-           ls -1 /usr/lib/llvm-1?/lib/LLVMgold.so
+           sudo apt-get install -y -qq ninja-build libsqlite3-dev postgresql-server-dev-16 numactl bison python3-venv libboost-all-dev libtbb-dev libreadline-dev clang-17 lld-17
+           sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-17 50
+           sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-17 50
+           sudo update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-17 50
            python3 -m venv ~/venv
            source ~/venv/bin/activate
            pip3 install -r python/requirements.txt  # Not using --quiet to log the installed DuckDB version.
+
+           ld.lld --version
+           clang++ --version
 
     - name: Setup MonetDB
       if: env.SKIP_MONETDB == 'false'
@@ -296,7 +295,7 @@ jobs:
       run: |
            mkdir -p hyrise_master/rel
            pushd hyrise_master/rel > /dev/null
-           cmake -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18 -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON -DENABLE_LTO=TRUE ..
+           cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON -DENABLE_LTO=TRUE ..
            cmake --build . --target hyriseServer
            popd > /dev/null
 
