@@ -12,10 +12,10 @@ defaults:
     shell: bash
 
 env:
-  SKIP_HYRISE: false
-  SKIP_HYRISE_MASTER: false
+  SKIP_HYRISE: true
+  SKIP_HYRISE_MASTER: true
   SKIP_MONETDB: false
-  SKIP_DUCKDB: false
+  SKIP_DUCKDB: true
   SCALE_FACTOR: 1.0
   CMAKE_GENERATOR: Ninja
 
@@ -246,6 +246,7 @@ jobs:
            mkdir -p monetdb_farm
            pushd tpch-scripts
            ./tpch_build.sh -s ${{ env.SCALE_FACTOR }} -f ~/monetdb_farm
+           ls -lisa ~/monetdb_farm
            popd
 
     - name: Benchmark MonetDB (database comparison)
