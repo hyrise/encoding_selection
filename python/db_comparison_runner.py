@@ -69,7 +69,6 @@ duckdb_scale_factor_string = int(args.scale_factor) if args.scale_factor >= 1.0 
 
 assert (args.single_query_id is None or (args.single_query_id > 0 and args.single_query_id < 23)), "Unexpected query id"
 assert (args.dbms != "duckdb" or Path("{}/tpch-dbgen/sf{}/nation.tbl".format(Path.home(), duckdb_scale_factor_string)).exists()), "Expecting TPC-H dbgen data to be present under fixed path."
-print(Path("{}/monetdb_farm/SF-{}".format(Path.home(), monetdb_scale_factor_string)))
 assert (args.dbms != "monetdb" or Path("{}/monetdb_farm/SF-{}".format(Path.home(), monetdb_scale_factor_string)).exists()), "Expecting MonetDB farm for requested scale factor to be present under fixed path."
 assert (args.benchmark != "JOB" or args.dbms in ["hyrise"]), "For now, this script supports the Join Order Benchmark only for Hyrise."
 assert (args.clients == 1 or args.time >= 300), "When multiple clients are set, a shuffled run is initiated which should last at least 300s."
