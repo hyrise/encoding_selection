@@ -12,10 +12,10 @@ defaults:
     shell: bash
 
 env:
-  SKIP_HYRISE: false
+  SKIP_HYRISE: true
   SKIP_HYRISE_MASTER: false
-  SKIP_MONETDB: false
-  SKIP_DUCKDB: false
+  SKIP_MONETDB: true
+  SKIP_DUCKDB: true
   SCALE_FACTOR: 0.5
   CMAKE_GENERATOR: Ninja
 
@@ -47,15 +47,10 @@ jobs:
            sudo add-apt-repository ppa:deadsnakes/ppa --yes
            # We don't use Hyrise's install_dependencies script as it includes much more than needed for this small setup here.
            sudo apt-get install -y ninja-build libboost-all-dev postgresql-server-dev-16 libtbb-dev libreadline-dev libsqlite3-dev systemtap-sdt-dev numactl python3.11-full python3.11-venv clang-17 lld-17
-           sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-17 90
-           sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-17 90
            sudo update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-17 90
            python3.11 -m venv ~/venv
            source ~/venv/bin/activate
            python -m pip  install -r python/requirements.txt --quiet
-
-           ld.lld --version
-           clang++ --version
 
     - name: Determine core and client counts for database comparison
       id: core_client_counts
@@ -79,7 +74,7 @@ jobs:
            pushd encoding_plugin/rel > /dev/null
            # We use the relaxed mode as there are several issues with newer compiler (fixed in Hyrise's master,
            # but not in the project's code).
-           cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON  -D CMAKE_CXX_FLAGS="-Wno-deprecated-declarations" ..
+           cmake -DCMAKE_C_COMPILER=clang-17 -DCMAKE_CXX_COMPILER=clang++-17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON  -D CMAKE_CXX_FLAGS="-Wno-deprecated-declarations" ..
            cmake --build . --target hyriseServer WorkloadStatisticsPlugin WorkloadHandlerPlugin CommandExecutorPlugin DataCharacteristicsPlugin
            popd > /dev/null
 
@@ -228,15 +223,10 @@ jobs:
       run: |
            sudo apt-get update -y -qq
            sudo apt-get install -y -qq ninja-build libsqlite3-dev postgresql-server-dev-16 numactl bison python3-venv libboost-all-dev libtbb-dev libreadline-dev clang-17 lld-17
-           sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-17 90
-           sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-17 90
            sudo update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-17 90
            python3 -m venv ~/venv
            source ~/venv/bin/activate
            pip3 install -r python/requirements.txt  # Not using --quiet to log the installed DuckDB version.
-
-           ld.lld --version
-           clang++ --version
 
     - name: Setup MonetDB
       if: env.SKIP_MONETDB == 'false'
@@ -298,7 +288,7 @@ jobs:
       run: |
            mkdir -p hyrise_master/rel
            pushd hyrise_master/rel > /dev/null
-           cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON .. # -DENABLE_LTO=TRUE ..
+           cmake -DCMAKE_C_COMPILER=clang-17 -DCMAKE_CXX_COMPILER=clang++-17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON .. # -DENABLE_LTO=TRUE ..
            cmake --build . --target hyriseServer
            popd > /dev/null
 
