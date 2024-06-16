@@ -226,7 +226,8 @@ jobs:
     - name: Install dependencies
       run: |
            sudo apt-get update -y -qq
-           sudo apt-get install llvm-18-linker-tools
+           sudo apt search linker-tools
+           sudo apt-get install --reinstall llvm-18-linker-tools
            # llvm-18-linker-tools required for LTO with llvm 18. See https://github.com/llvm/llvm-project/issues/87553
            sudo apt-get install -y -qq ninja-build libsqlite3-dev postgresql-server-dev-16 numactl bison python3-venv libboost-all-dev libtbb-dev libreadline-dev clang-18 lld-18 llvm-18-linker-tools
            python3 -m venv ~/venv
