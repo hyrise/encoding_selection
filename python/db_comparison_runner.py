@@ -64,7 +64,7 @@ if args.dbms == 'hyrise':
   hyrise_server_path = Path(args.hyrise_server_path).expanduser().resolve()
   assert (hyrise_server_path / "hyriseServer").exists(), "Please pass valid --hyrise_server_path"
 
-monetdb_scale_factor_string = str(args.scale_factor).replace(".", "_")
+monetdb_scale_factor_string = str(args.scale_factor).replace(".", "_") if float(int(args.scale_factor)) == args.scale_factor else str(int(args.scale_factor))
 duckdb_scale_factor_string = int(args.scale_factor) if args.scale_factor >= 1.0 else args.scale_factor
 
 assert (args.single_query_id is None or (args.single_query_id > 0 and args.single_query_id < 23)), "Unexpected query id"
