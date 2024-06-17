@@ -190,7 +190,7 @@ def get_aggregated_table_size():
         rows_fetched += len(rows)
       print("{:,} rows.".format(rows_fetched), flush=True)
 
-  with open("db_comparison_results/size_{}__SF{}.csv".format(args.dbms, args.scale_factor), "w") as size_file:
+  with open("db_comparison_results/size_{}.csv".format(args.dbms), "w") as size_file:
     size_file.write("DATABASE_SYSTEM,SCALE_FACTOR,SIZE_IN_BYTES\n")
     cumulative_size = 0
     if args.dbms == "monetdb":
