@@ -41,10 +41,10 @@ duckdb_runtimes <- read.csv(paste0(results_dir, "/database_comparison__TPC-H__du
 hyrise_master_runtimes <- read.csv(paste0(results_dir, "/database_comparison__TPC-H__hyrise_master.csv"))
 hyrise_master_runtimes$DATABASE_SYSTEM = "hyrise_master"
 
-monet_size <- read.csv(paste0(results_dir, "/size_monetdb__SF", scale_factor, ".csv"))
-hyrise_size <- read.csv(paste0(results_dir, "/size_hyrise__SF", scale_factor, ".csv"))
-duckdb_size <- read.csv(paste0(results_dir, "/size_duckdb__SF", scale_factor, ".csv"))
-hyrise_master_size <- read.csv(paste0(results_dir, "/size_hyrise_master__SF", scale_factor, ".csv"))
+monet_size <- read.csv(paste0(results_dir, "/size_monetdb.csv"))
+hyrise_size <- read.csv(paste0(results_dir, "/size_hyrise.csv"))
+duckdb_size <- read.csv(paste0(results_dir, "/size_duckdb.csv"))
+hyrise_master_size <- read.csv(paste0(results_dir, "/size_hyrise_master.csv"))
 hyrise_master_size$DATABASE_SYSTEM = "hyrise_master"
 
 runtimes <- rbind(monet_runtimes, hyrise_runtimes, duckdb_runtimes, hyrise_master_runtimes)
@@ -101,4 +101,4 @@ g <- ggplot(joined, aes(x=size_gb, y=runs_per_hour, group=DATABASE_SYSTEM, fill=
     force = 0.5,
   )
 
-ggsave("db_comparison.pdf", g, width=7, height=5)
+ggsave(paste0("db_comparison__", strftime(as.POSIXlt(Sys.time(), "UTC") , "%Y-%m-%d"),".pdf"), g, width=7, height=5)
