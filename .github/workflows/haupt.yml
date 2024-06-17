@@ -16,7 +16,7 @@ env:
   SKIP_HYRISE_MASTER: false
   SKIP_MONETDB: false
   SKIP_DUCKDB: false
-  SCALE_FACTOR: 1.0
+  SCALE_FACTOR: 1
   CMAKE_GENERATOR: Ninja
 
 jobs:
@@ -288,7 +288,7 @@ jobs:
       run: |
            mkdir -p hyrise_master/rel
            pushd hyrise_master/rel > /dev/null
-           cmake -DCMAKE_C_COMPILER=clang-17 -DCMAKE_CXX_COMPILER=clang++-17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON -DENABLE_LTO=TRUE ..
+           cmake -DCMAKE_C_COMPILER=clang-17 -DCMAKE_CXX_COMPILER=clang++-17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON ..
            cmake --build . --target hyriseServer
            popd > /dev/null
 
