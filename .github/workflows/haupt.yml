@@ -46,11 +46,11 @@ jobs:
            # Add repository for older python versions. We use 3.11 as there are several issues with 3.12 (e.g., removed distutils and pip problems).
            sudo add-apt-repository ppa:deadsnakes/ppa --yes
            # We don't use Hyrise's install_dependencies script as it includes much more than needed for this small setup here.
-           sudo apt-get install -y ninja-build libboost-all-dev postgresql-server-dev-16 libtbb-dev libreadline-dev libsqlite3-dev systemtap-sdt-dev numactl python3.11-full python3.11-venv clang-17 lld-17
+           sudo apt-get install -y -qq ninja-build libboost-all-dev postgresql-server-dev-16 libtbb-dev libreadline-dev libsqlite3-dev systemtap-sdt-dev numactl python3.11-full python3.11-venv clang-17 lld-17
            sudo update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-17 90
            python3.11 -m venv ~/venv
            source ~/venv/bin/activate
-           python -m pip  install -r python/requirements.txt --quiet
+           python -m pip install -r python/requirements.txt --quiet
 
     - name: Determine core and client counts for database comparison
       id: core_client_counts
@@ -73,8 +73,9 @@ jobs:
            mkdir -p encoding_plugin/rel
            pushd encoding_plugin/rel > /dev/null
            # We use the relaxed mode as there are several issues with newer compiler (fixed in Hyrise's master,
-           # but not in the project's code).
-           cmake -DCMAKE_C_COMPILER=clang-17 -DCMAKE_CXX_COMPILER=clang++-17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON  -D CMAKE_CXX_FLAGS="-Wno-deprecated-declarations" ..
+           # but not in the project's code). On top of relaxed mode (i.e., not all warnings are errors), we
+           # disable issues with deprecated declarations (atomic shared_ptr's).
+           cmake -DCMAKE_C_COMPILER=clang-17 -DCMAKE_CXX_COMPILER=clang++-17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON -DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations" ..
            cmake --build . --target hyriseServer WorkloadStatisticsPlugin WorkloadHandlerPlugin CommandExecutorPlugin DataCharacteristicsPlugin
            popd > /dev/null
 
@@ -88,7 +89,7 @@ jobs:
 
            source ~/venv/bin/activate
            pushd python > /dev/null
-           python3 runner.py --hyrise_server_path=../encoding_plugin/rel/  --base_benchmark_runs=1 --single_benchmark=TPC-H --execute=calibration --scale_factor ${{ env.SCALE_FACTOR }} --random_encoding_configs_count=3
+           python3 runner.py --hyrise_server_path=../encoding_plugin/rel/ --base_benchmark_runs=1 --single_benchmark=TPC-H --execute=calibration --scale_factor ${{ env.SCALE_FACTOR }} --random_encoding_configs_count=3
            popd > /dev/null
 
     - name: Run calibration - learn runtime and size models
@@ -269,7 +270,7 @@ jobs:
            chmod 644 *.tbl
 
            mkdir -p sf${{ env.SCALE_FACTOR }}
-           mv *.tbl sf${{ env.SCALE_FACTOR }}          
+           mv *.tbl sf${{ env.SCALE_FACTOR }}
            popd
            mv tpch-dbgen ~
 
@@ -288,7 +289,7 @@ jobs:
       run: |
            mkdir -p hyrise_master/rel
            pushd hyrise_master/rel > /dev/null
-           cmake -DCMAKE_C_COMPILER=clang-17 -DCMAKE_CXX_COMPILER=clang++-17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON -DENABLE_LTO=TRUE ..
+           cmake -DCMAKE_C_COMPILER=clang-17 -DCMAKE_CXX_COMPILER=clang++-17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON ..
            cmake --build . --target hyriseServer
            popd > /dev/null
 
