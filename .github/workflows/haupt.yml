@@ -13,9 +13,10 @@ defaults:
 
 env:
   SKIP_HYRISE: false
+  SKIP_HYRISE_MASTER: false
   SKIP_MONETDB: false
   SKIP_DUCKDB: false
-  SCALE_FACTOR: 0.5
+  SCALE_FACTOR: 1
   CMAKE_GENERATOR: Ninja
 
 jobs:
@@ -45,10 +46,11 @@ jobs:
            # Add repository for older python versions. We use 3.11 as there are several issues with 3.12 (e.g., removed distutils and pip problems).
            sudo add-apt-repository ppa:deadsnakes/ppa --yes
            # We don't use Hyrise's install_dependencies script as it includes much more than needed for this small setup here.
-           sudo apt-get install -y ninja-build libboost-all-dev postgresql-server-dev-16 libtbb-dev libreadline-dev libsqlite3-dev systemtap-sdt-dev lld numactl python3.11-full python3.11-venv
+           sudo apt-get install -y -qq ninja-build libboost-all-dev postgresql-server-dev-16 libtbb-dev libreadline-dev libsqlite3-dev systemtap-sdt-dev numactl python3.11-full python3.11-venv clang-17 lld-17
+           sudo update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-17 90
            python3.11 -m venv ~/venv
            source ~/venv/bin/activate
-           python -m pip  install -r python/requirements.txt --quiet
+           python -m pip install -r python/requirements.txt --quiet
 
     - name: Determine core and client counts for database comparison
       id: core_client_counts
@@ -70,10 +72,10 @@ jobs:
       run: |
            mkdir -p encoding_plugin/rel
            pushd encoding_plugin/rel > /dev/null
-           # Erase all encoding types. Hurts performance but allows us to compile in release mode with GitHub runners.
-           # Further, we use the relaxed mode as there are several issues with newer compiler (fixed in Hyrise's master,
-           # but not in the project's code).
-           cmake -DCMAKE_BUILD_TYPE=Release -DHYRISE_RELAXED_BUILD=ON -DERASE_SEGMENT_TYPES=Dictionary,LZ4,RunLength,FSST,FrameOfReference,Unencoded,FixedStringDictionary ..
+           # We use the relaxed mode as there are several issues with newer compiler (fixed in Hyrise's master,
+           # but not in the project's code). On top of relaxed mode (i.e., not all warnings are errors), we
+           # disable issues with deprecated declarations (atomic shared_ptr's).
+           cmake -DCMAKE_C_COMPILER=clang-17 -DCMAKE_CXX_COMPILER=clang++-17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON -DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations" ..
            cmake --build . --target hyriseServer WorkloadStatisticsPlugin WorkloadHandlerPlugin CommandExecutorPlugin DataCharacteristicsPlugin
            popd > /dev/null
 
@@ -87,7 +89,7 @@ jobs:
 
            source ~/venv/bin/activate
            pushd python > /dev/null
-           python3 runner.py --hyrise_server_path=../encoding_plugin/rel/  --base_benchmark_runs=1 --single_benchmark=TPC-H --execute=calibration --scale_factor ${{ env.SCALE_FACTOR }} --random_encoding_configs_count=3
+           python3 runner.py --hyrise_server_path=../encoding_plugin/rel/ --base_benchmark_runs=1 --single_benchmark=TPC-H --execute=calibration --scale_factor ${{ env.SCALE_FACTOR }} --random_encoding_configs_count=3
            popd > /dev/null
 
     - name: Run calibration - learn runtime and size models
@@ -189,6 +191,14 @@ jobs:
         repository: electrum/tpch-dbgen
         path: ./tpch-dbgen
 
+    - uses: actions/checkout@master
+      if: env.SKIP_HYRISE_MASTER == 'false'
+      with:
+        token: ${{ secrets.PAT }}
+        repository: hyrise/hyrise
+        path: ./hyrise_master
+        submodules: recursive
+
     - name: Determine client and core counts for database comparison
       id: core_client_counts
       run: |
@@ -213,7 +223,8 @@ jobs:
     - name: Install dependencies
       run: |
            sudo apt-get update -y -qq
-           sudo apt-get install -y -qq ninja-build libsqlite3-dev postgresql-server-dev-16 numactl bison python3-venv
+           sudo apt-get install -y -qq ninja-build libsqlite3-dev postgresql-server-dev-16 numactl bison python3-venv libboost-all-dev libtbb-dev libreadline-dev clang-17 lld-17
+           sudo update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-17 90
            python3 -m venv ~/venv
            source ~/venv/bin/activate
            pip3 install -r python/requirements.txt  # Not using --quiet to log the installed DuckDB version.
@@ -259,7 +270,7 @@ jobs:
            chmod 644 *.tbl
 
            mkdir -p sf${{ env.SCALE_FACTOR }}
-           mv *.tbl sf${{ env.SCALE_FACTOR }}          
+           mv *.tbl sf${{ env.SCALE_FACTOR }}
            popd
            mv tpch-dbgen ~
 
@@ -273,9 +284,30 @@ jobs:
            python3 db_comparison_runner.py duckdb --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --determine_size_only
            popd
 
+    - name: Build Hyrise (master) release server
+      if: env.SKIP_HYRISE_MASTER == 'false'
+      run: |
+           mkdir -p hyrise_master/rel
+           pushd hyrise_master/rel > /dev/null
+           cmake -DCMAKE_C_COMPILER=clang-17 -DCMAKE_CXX_COMPILER=clang++-17 -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON ..
+           cmake --build . --target hyriseServer
+           popd > /dev/null
+
+    - name: Benchmark Hyrise (master, database comparison)
+      if: env.SKIP_HYRISE_MASTER == 'false'
+      run: |
+           pushd python
+           source ~/venv/bin/activate
+           python3 db_comparison_runner.py hyrise --hyrise_server_path=../hyrise_master/rel/ --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --clients=${{ env.CLIENT_COUNT }} --time=${{ env.COMPARISON_RUNTIME }}
+           python3 db_comparison_runner.py hyrise --hyrise_server_path=../hyrise_master/rel/ --cores=${{ env.CORE_COUNT }} --scale_factor=${{ env.SCALE_FACTOR }} --determine_size_only
+
+           mv db_comparison_results/database_comparison__TPC-H__hyrise.csv db_comparison_results/database_comparison__TPC-H__hyrise_master.csv
+           mv db_comparison_results/size_hyrise.csv db_comparison_results/size_hyrise_master.csv
+           popd
+
     - name: Upload benchmark results
       uses: actions/upload-artifact@master
-      if: env.SKIP_DUCKDB == 'false' || env.SKIP_MONETDB == 'false'
+      if: env.SKIP_DUCKDB == 'false' || env.SKIP_MONETDB == 'false' || env.SKIP_HYRISE_MASTER == 'false'
       with:
         name: comparison_results
         path: |
@@ -334,4 +366,4 @@ jobs:
       with:
         name: database_comparison
         path: |
-          db_comparison.pdf
+          db_comparison*.pdf

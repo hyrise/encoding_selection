@@ -7,8 +7,8 @@ scale_factor = Sys.getenv("SCALE_FACTOR")
 run_name = Sys.getenv("CALIBRATION_RUN")  # currently not used.
 hyrise_core_count = Sys.getenv("HYRISE_CORE_COUNT")
 hyrise_client_count = Sys.getenv("HYRISE_CLIENT_COUNT")
-comparison_core_count = Sys.getenv("HYRISE_CORE_COUNT")
-comparison_client_count = Sys.getenv("HYRISE_CLIENT_COUNT")
+comparison_core_count = Sys.getenv("COMPARISON_CORE_COUNT")
+comparison_client_count = Sys.getenv("COMPARISON_CLIENT_COUNT")
 
 results_dir = paste0("results_to_plot")
 
@@ -38,13 +38,17 @@ hyrise_lp$is_geom_line <- TRUE
 monet_runtimes <- read.csv(paste0(results_dir, "/database_comparison__TPC-H__monetdb.csv"))
 hyrise_runtimes <- read.csv(paste0(results_dir, "/database_comparison__TPC-H__hyrise.csv"))
 duckdb_runtimes <- read.csv(paste0(results_dir, "/database_comparison__TPC-H__duckdb.csv"))
+hyrise_master_runtimes <- read.csv(paste0(results_dir, "/database_comparison__TPC-H__hyrise_master.csv"))
+hyrise_master_runtimes$DATABASE_SYSTEM = "hyrise_master"
 
-monet_size <- read.csv(paste0(results_dir, "/size_monetdb__SF", scale_factor, ".csv"))
-hyrise_size <- read.csv(paste0(results_dir, "/size_hyrise__SF", scale_factor, ".csv"))
-duckdb_size <- read.csv(paste0(results_dir, "/size_duckdb__SF", scale_factor, ".csv"))
+monet_size <- read.csv(paste0(results_dir, "/size_monetdb.csv"))
+hyrise_size <- read.csv(paste0(results_dir, "/size_hyrise.csv"))
+duckdb_size <- read.csv(paste0(results_dir, "/size_duckdb.csv"))
+hyrise_master_size <- read.csv(paste0(results_dir, "/size_hyrise_master.csv"))
+hyrise_master_size$DATABASE_SYSTEM = "hyrise_master"
 
-runtimes <- rbind(monet_runtimes, hyrise_runtimes, duckdb_runtimes)
-sizes <- rbind(monet_size, hyrise_size, duckdb_size)
+runtimes <- rbind(monet_runtimes, hyrise_runtimes, duckdb_runtimes, hyrise_master_runtimes)
+sizes <- rbind(monet_size, hyrise_size, duckdb_size, hyrise_master_size)
 
 runtimes_q_agg <- runtimes %>% group_by(DATABASE_SYSTEM, ITEM_NAME) %>% summarize(median_runtime = mean(RUNTIME_MS), .groups="keep")
 runtimes_db_agg <- runtimes_q_agg %>% group_by(DATABASE_SYSTEM) %>% summarize(cumulative_runtime = sum(median_runtime), .groups="keep")
@@ -66,6 +70,7 @@ joined <- rbind(joined, first_lp)
 joined$DATABASE_SYSTEM[which(joined$DATABASE_SYSTEM == "duckdb")] <- "DuckDB"
 joined$DATABASE_SYSTEM[which(joined$DATABASE_SYSTEM == "monetdb")] <- "MonetDB"
 joined$DATABASE_SYSTEM[which(joined$DATABASE_SYSTEM == "hyrise")] <- "Default Hyrise"
+joined$DATABASE_SYSTEM[which(joined$DATABASE_SYSTEM == "hyrise_master")] <- "Hyrise Master"
 
 max_size <- max(joined$size_gb)
 max_throughput <- max(joined$runs_per_hour)
@@ -96,4 +101,4 @@ g <- ggplot(joined, aes(x=size_gb, y=runs_per_hour, group=DATABASE_SYSTEM, fill=
     force = 0.5,
   )
 
-ggsave("db_comparison.pdf", g, width=7, height=5)
+ggsave(paste0("db_comparison__", strftime(as.POSIXlt(Sys.time(), "UTC") , "%Y-%m-%d"),".pdf"), g, width=7, height=5)

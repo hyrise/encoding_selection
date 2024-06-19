@@ -105,7 +105,7 @@ def collect_unified_operator_runtimes_per_column(operator_name, operator_data_fo
         candidates_left.columns = ["TABLE_NAME", "COLUMN_NAME", "DATA_TYPE"]
         candidates_right = df[["RIGHT_TABLE_NAME", "RIGHT_COLUMN_NAME", "DATA_TYPE_RIGHT"]]
         candidates_right.columns = ["TABLE_NAME", "COLUMN_NAME", "DATA_TYPE"]
-        candidates = candidates_left.append(candidates_right)
+        candidates = pd.concat([candidates_left, candidates_right])
     else:
         candidates = df[['TABLE_NAME', 'COLUMN_NAME', 'DATA_TYPE']]
 
@@ -266,10 +266,8 @@ def predict_join_baselines(df, runtime_models_folder, model = 'heteroscedastic',
                   f"(predicted for baseline: {baseline_execution_time:,.2f} ms, actual: {actual_execution_time:,.2f} ms).")
 
         encoding_selection_helpers.adapt_negative_predictions(predictable, "prediction")
-
         predictable["prediction_error"] = predictable.prediction - predictable.execution_time_ms
-
-        results = results.append(predictable[['QUERY_HASH', 'OPERATOR_HASH', 'JOIN_MODEL_TYPE', 'materialize_side', 'prediction']])
+        results = pd.concat([results, predictable[['QUERY_HASH', 'OPERATOR_HASH', 'JOIN_MODEL_TYPE', 'materialize_side', 'prediction']]])
 
     return results
 
@@ -296,7 +294,7 @@ def collect_join_runtimes_per_column(operator_data_folder, runtime_models_folder
     candidates_left.columns = ["TABLE_NAME", "COLUMN_NAME", "DATA_TYPE"]
     candidates_right = df[["RIGHT_TABLE_NAME", "RIGHT_COLUMN_NAME", "DATA_TYPE_RIGHT"]]
     candidates_right.columns = ["TABLE_NAME", "COLUMN_NAME", "DATA_TYPE"]
-    candidates = candidates_left.append(candidates_right)
+    candidates = pd.concat([candidates_left, candidates_right])
 
     # Drop publicates, but keep na() as they mark materialized columns
     candidates = candidates.drop_duplicates()
@@ -374,7 +372,7 @@ def collect_join_runtimes_per_column(operator_data_folder, runtime_models_folder
                                             'VECTOR_COMPRESSION_TYPE',
                                             'JOIN_MODEL_TYPE',
                                             'materialize_side'], dropna=False).agg({'adapted_prediction': 'min'}).reset_index()
-    encoding_change_predictions = encoding_change_predictions.append(encoding_change_predictions_extract_grouped)
+    encoding_change_predictions = pd.concat([encoding_change_predictions, encoding_change_predictions_extract_grouped])
 
     if len(encoding_change_predictions) > 0:
         encoding_change_predictions.VECTOR_COMPRESSION_TYPE = encoding_change_predictions.VECTOR_COMPRESSION_TYPE.replace("", np.nan)

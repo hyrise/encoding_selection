@@ -64,7 +64,7 @@ if args.dbms == 'hyrise':
   hyrise_server_path = Path(args.hyrise_server_path).expanduser().resolve()
   assert (hyrise_server_path / "hyriseServer").exists(), "Please pass valid --hyrise_server_path"
 
-monetdb_scale_factor_string = str(args.scale_factor).replace(".", "_")
+monetdb_scale_factor_string = str(args.scale_factor).replace(".", "_") if float(int(args.scale_factor)) != args.scale_factor else str(int(args.scale_factor))
 duckdb_scale_factor_string = int(args.scale_factor) if args.scale_factor >= 1.0 else args.scale_factor
 
 assert (args.single_query_id is None or (args.single_query_id > 0 and args.single_query_id < 23)), "Unexpected query id"
@@ -190,7 +190,7 @@ def get_aggregated_table_size():
         rows_fetched += len(rows)
       print("{:,} rows.".format(rows_fetched), flush=True)
 
-  with open("db_comparison_results/size_{}__SF{}.csv".format(args.dbms, args.scale_factor), "w") as size_file:
+  with open("db_comparison_results/size_{}.csv".format(args.dbms), "w") as size_file:
     size_file.write("DATABASE_SYSTEM,SCALE_FACTOR,SIZE_IN_BYTES\n")
     cumulative_size = 0
     if args.dbms == "monetdb":
@@ -297,7 +297,7 @@ for query_id in benchmark_queries:
     time_left = start_time + timeout - time.time()
     if time_left < 0:
       break
-    print('\rBenchmarking {}... {:.0f} seconds left'.format(query_name, time_left), end="")
+    print('\rBenchmarking {}... {:.0f} seconds left'.format(query_name, time_left), end="", flush=True)
     time.sleep(min(10, time_left))
 
   while True:
