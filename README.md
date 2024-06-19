@@ -3,7 +3,8 @@
 
 This repository contains source code and artifacts for the paper [**Robust and Budget-Constrained Encoding Configurations for In-Memory Database Systems**](https://www.vldb.org/pvldb/vol15/p780-boissier.pdf) (VLDB 2022).
 
-<img src="https://github.com/hyrise/encoding_selection/assets/1745857/e5fe1fe5-13f8-4d42-a994-94034d795d02" width="300" alt="Exemplary results of pipeline run, comparing against MonetDB and Duckdb." />
+<img src="https://github.com/hyrise/encoding_selection/assets/1745857/f14194f5-c48a-49d7-bc9f-c079e35c40db" width="300" alt="Exemplary results of pipeline run, comparing against MonetDB and Duckdb." />
+
 
 Once a month, we automatically execute the encoding system presented in the paper as a GitHub action and compare the performance against MonetDB and DuckDB[^1].
 You can see the most recent results plotted in the `database_comparison.zip` artifact of the [most recent run of the main branch](https://github.com/hyrise/encoding_selection/actions?query=branch%3Amain) (more information below).
