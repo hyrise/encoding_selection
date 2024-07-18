@@ -196,6 +196,7 @@ jobs:
       with:
         token: ${{ secrets.PAT }}
         repository: hyrise/hyrise
+        ref: 'martin/fix/update_libpqxx_for_cmake333'
         path: ./hyrise_master
         submodules: recursive
 
