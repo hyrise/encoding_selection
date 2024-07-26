@@ -69,8 +69,8 @@ joined <- rbind(joined, first_lp)
 # Renamings
 joined$DATABASE_SYSTEM[which(joined$DATABASE_SYSTEM == "duckdb")] <- "DuckDB"
 joined$DATABASE_SYSTEM[which(joined$DATABASE_SYSTEM == "monetdb")] <- "MonetDB"
-joined$DATABASE_SYSTEM[which(joined$DATABASE_SYSTEM == "hyrise")] <- "Default Hyrise"
-joined$DATABASE_SYSTEM[which(joined$DATABASE_SYSTEM == "hyrise_master")] <- "Hyrise Master"
+joined$DATABASE_SYSTEM[which(joined$DATABASE_SYSTEM == "hyrise")] <- "Hyrise (Default Configuration, 2022)"
+joined$DATABASE_SYSTEM[which(joined$DATABASE_SYSTEM == "hyrise_master")] <- "Hyrise (Current Main Branch)"
 
 max_size <- max(joined$size_gb)
 max_throughput <- max(joined$runs_per_hour)
