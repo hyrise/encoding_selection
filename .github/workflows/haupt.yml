@@ -56,7 +56,7 @@ jobs:
       id: core_client_counts
       run: |
            core_count=`grep -Pc '^processor\t' /proc/cpuinfo`
-           client_count=$(python -c "import math; print(int(math.ceil(${core_count}*0.75)))")
+           client_count=1
            comparison_runtime=$(python -c "print(min(1800, max(300, int(${{ env.SCALE_FACTOR }}*3500))))")
            echo "Using ${core_count} cores and ${client_count} clients, comparison benchmarks running for ${comparison_runtime} seconds."
 
@@ -203,7 +203,7 @@ jobs:
       id: core_client_counts
       run: |
            core_count=`grep -Pc '^processor\t' /proc/cpuinfo`
-           client_count=$(python -c "import math; print(int(math.ceil(${core_count}*0.75)))")
+           client_count=1
            comparison_runtime=$(python -c "print(min(1800, max(300, int(${{ env.SCALE_FACTOR }}*3500))))")
            echo "Using ${core_count} cores and ${client_count} clients, comparison benchmarks running for ${comparison_runtime} seconds."
 
