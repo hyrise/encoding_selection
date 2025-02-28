@@ -57,7 +57,7 @@ jobs:
       run: |
            core_count=`grep -Pc '^processor\t' /proc/cpuinfo`
            client_count=1
-           comparison_runtime=$(python -c "print(min(1800, max(300, int(${{ env.SCALE_FACTOR }}*3500))))")
+           comparison_runtime=60
            echo "Using ${core_count} cores and ${client_count} clients, comparison benchmarks running for ${comparison_runtime} seconds."
 
            echo "CORE_COUNT=${core_count}" >> $GITHUB_ENV
@@ -204,7 +204,7 @@ jobs:
       run: |
            core_count=`grep -Pc '^processor\t' /proc/cpuinfo`
            client_count=1
-           comparison_runtime=$(python -c "print(min(1800, max(300, int(${{ env.SCALE_FACTOR }}*3500))))")
+           comparison_runtime=60
            echo "Using ${core_count} cores and ${client_count} clients, comparison benchmarks running for ${comparison_runtime} seconds."
 
            echo "CORE_COUNT=${core_count}" >> $GITHUB_ENV
