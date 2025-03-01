@@ -16,7 +16,7 @@ env:
   SKIP_HYRISE_MASTER: false
   SKIP_MONETDB: false
   SKIP_DUCKDB: false
-  SCALE_FACTOR: 1
+  SCALE_FACTOR: 2
   CMAKE_GENERATOR: Ninja
 
 jobs:
