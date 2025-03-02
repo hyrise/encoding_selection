@@ -55,7 +55,7 @@ jobs:
     - name: Determine core and client counts for database comparison
       id: core_client_counts
       run: |
-           core_count=`grep -Pc '^processor\t' /proc/cpuinfo`
+           core_count=1
            client_count=1
            comparison_runtime=60
            echo "Using ${core_count} cores and ${client_count} clients, comparison benchmarks running for ${comparison_runtime} seconds."
@@ -202,7 +202,7 @@ jobs:
     - name: Determine client and core counts for database comparison
       id: core_client_counts
       run: |
-           core_count=`grep -Pc '^processor\t' /proc/cpuinfo`
+           core_count=1
            client_count=1
            comparison_runtime=60
            echo "Using ${core_count} cores and ${client_count} clients, comparison benchmarks running for ${comparison_runtime} seconds."
