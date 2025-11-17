@@ -75,7 +75,7 @@ jobs:
            # We use the relaxed mode as there are several issues with newer compiler (fixed in Hyrise's master,
            # but not in the project's code). On top of relaxed mode (i.e., not all warnings are errors), we
            # disable issues with deprecated declarations (atomic shared_ptr's).
-           cmake -DCMAKE_C_COMPILER=clang-19 -DCMAKE_CXX_COMPILER=clang++-19 -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON -DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations" ..
+           cmake -DCMAKE_C_COMPILER=clang-19 -DCMAKE_CXX_COMPILER=clang++-19 -DCMAKE_BUILD_TYPE=Release -DCMAKE_UNITY_BUILD=ON -DHYRISE_RELAXED_BUILD=ON -DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations -Wno-missing-template-arg-list-after-template-kw" ..
            cmake --build . --target hyriseServer WorkloadStatisticsPlugin WorkloadHandlerPlugin CommandExecutorPlugin DataCharacteristicsPlugin
            popd > /dev/null
 
